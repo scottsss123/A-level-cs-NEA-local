@@ -4,7 +4,8 @@ class Box {
     #pos;
     #width;
     #height;
-    #colour;   
+    #colour; 
+    #displaying;   ///////////////////////////////////////////////////
    
     // public procedure method 'new'
     constructor (inX, inY, inWidth, inHeight, inColour) { 
@@ -24,10 +25,9 @@ class Box {
     // return true if mouse is within box, false if not
     mouseOverlapping() {
         if (mouseX >= this.#pos[0] - (this.#width / 2) 
-         && mouseX <= this.#pos[0] + (this.#width / 2) 
-         && mouseY >= this.#pos[1] - (this.#height / 2) 
+         && mouseX <= this.#pos[0] + (this.#width / 2)
+         && mouseY >= this.#pos[1] - (this.#height / 2)
          && mouseY <= this.#pos[1] + (this.#height / 2)) {
-            console.log('overlap')
             return true;
         } else {
             return false;

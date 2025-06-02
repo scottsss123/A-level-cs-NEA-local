@@ -13,8 +13,9 @@ function setup() {
     testBox = new Box(windowWidth / 2, windowHeight / 2, windowWidth / 5, windowWidth / 25, [50,50,200]);
 }
 
-// run once per frame, by default 60Hz, by q5 library
+// called once per frame
 function update() {
+    // colour test box according to relative mouse position for testing
     if (testBox.mouseOverlapping()) {
         testBox.setColour([25,25,100]);
     } else {
@@ -24,6 +25,10 @@ function update() {
 
 // run once per frame, by default 60Hz, by q5 library, for drawing to canvas
 function draw() {
+    // program logic
+    update();
+
+    // program display
     background(220);
     testBox.display();
 }
