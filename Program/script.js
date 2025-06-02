@@ -1,4 +1,9 @@
-let testBox;
+let testButton;
+let secondTestButton;
+let thirdTestButton;
+let testButtonColour = [50,50,200];
+let testButtonHoverColour = [25,25,100];
+let state = 0;
 
 // executed before setup to load assets in more modular way
 function preload() {
@@ -10,16 +15,24 @@ function setup() {
     // q5 function and inbuilt variables
     createCanvas(windowWidth, windowHeight);
     rectMode(CENTER);
-    testBox = new Box(windowWidth / 2, windowHeight / 2, windowWidth / 5, windowWidth / 25, [50,50,200]);
+    testButton = new Button(windowWidth / 2, windowHeight / 2, windowWidth / 5, windowHeight / 10, testButtonColour, 'testButton', 1);
+    secondTestButton = new Button(windowWidth / 2, windowHeight / 2, windowWidth / 5, windowHeight / 10, testButtonColour, 'secondTestButton', 0);
+    thirdTestButton = new Button(windowWidth / 2, windowHeight / 2 + windowHeight / 10 + 10, windowWidth / 5, windowHeight / 10, testButtonColour, 'thirdTestButton', 1);
 }
 
 // called once per frame
 function update() {
-    // colour test box according to relative mouse position for testing
-    if (testBox.mouseOverlapping()) {
-        testBox.setColour([25,25,100]);
-    } else {
-        testBox.setColour([50,50,200]);
+    // execute different logic based on program state
+    switch (state) {
+        case 0:
+            // colour test button according to relative mouse position for testing
+            menuButtonLogic([testButton, thirdTestButton]);
+            break;
+        case 1:
+            menuButtonLogic([secondTestButton]);
+            break;
+        default:
+            break;
     }
 }
 
@@ -28,8 +41,31 @@ function draw() {
     // program logic
     update();
 
-    // program display
-    background(220);
-    testBox.display();
+    // black background
+    background(0);
+    // display different elements based on program state
+    switch (state) {
+        case 0:
+            testButton.display(); // change this to array for main menu and second menu
+            thirdTestButton.display();
+            break;
+        case 1:
+            secondTestButton.display();
+            break;
+        default:
+            break;
+    }
 }
 
+function menuButtonLogic(buttonArr) {
+    for (let button of buttonArr) {
+        if (button.mouseOverlapping()) {
+            button.setColour(testButtonHoverColour);
+            if (mouseIsPressed) {  // comment on this bug
+                state = button.getStateChange();
+            }
+        } else {
+            button.setColour(testButtonColour);
+        }
+    }
+}

@@ -5,7 +5,6 @@ class Box {
     #width;
     #height;
     #colour; 
-    #displaying;   ///////////////////////////////////////////////////
    
     // public procedure method 'new'
     constructor (inX, inY, inWidth, inHeight, inColour) { 
@@ -32,6 +31,19 @@ class Box {
         } else {
             return false;
         }
+    }
+
+    getPos() {
+        return this.#pos;
+    }
+    getWidth() {
+        return this.#width;
+    }
+    getHeight() {
+        return this.#height;
+    }
+    getColour() {
+        return this.#colour;
     }
 
     setColour(inColour) {
