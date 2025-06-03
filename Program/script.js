@@ -1,6 +1,8 @@
 let testButton;
 let secondTestButton;
 let thirdTestButton;
+let mainButtonArr;
+let secondButtonArr;
 let testButtonColour = [50,50,200];
 let testButtonHoverColour = [25,25,100];
 let state = 0;
@@ -18,6 +20,8 @@ function setup() {
     testButton = new Button(windowWidth / 2, windowHeight / 2, windowWidth / 5, windowHeight / 10, testButtonColour, 'testButton', 1);
     secondTestButton = new Button(windowWidth / 2, windowHeight / 2, windowWidth / 5, windowHeight / 10, testButtonColour, 'secondTestButton', 0);
     thirdTestButton = new Button(windowWidth / 2, windowHeight / 2 + windowHeight / 10 + 10, windowWidth / 5, windowHeight / 10, testButtonColour, 'thirdTestButton', 1);
+    mainButtonArr = [testButton, thirdTestButton];
+    secondButtonArr = [secondTestButton];
 }
 
 // called once per frame
@@ -26,10 +30,10 @@ function update() {
     switch (state) {
         case 0:
             // colour test button according to relative mouse position for testing
-            menuButtonLogic([testButton, thirdTestButton]);
+            menuButtonLogic(mainButtonArr);
             break;
         case 1:
-            menuButtonLogic([secondTestButton]);
+            menuButtonLogic(secondButtonArr);
             break;
         default:
             break;
@@ -46,8 +50,9 @@ function draw() {
     // display different elements based on program state
     switch (state) {
         case 0:
-            testButton.display(); // change this to array for main menu and second menu
-            thirdTestButton.display();
+            for (let button of mainButtonArr) {
+                
+            }
             break;
         case 1:
             secondTestButton.display();
