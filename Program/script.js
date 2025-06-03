@@ -1,10 +1,10 @@
-let testButton;
-let secondTestButton;
-let thirdTestButton;
-let mainButtonArr;
-let secondButtonArr;
-let testButtonColour = [50,50,200];
-let testButtonHoverColour = [25,25,100];
+// initialising global variables
+const states = ['main menu', 'main simulation', 'learn menu', 'pause menu', 'simulation tutorial', 'physics information', 'newtonian mechanics']
+const buttonColourDefault = [50,50,200];
+const buttonColourHover = [25,25,100];
+
+// 2d list of lists of buttons: buttons[i] is the list of buttons to be shown in state = i
+let buttons = []
 let state = 0;
 
 // executed before setup to load assets in more modular way
@@ -17,23 +17,35 @@ function setup() {
     // q5 function and inbuilt variables
     createCanvas(windowWidth, windowHeight);
     rectMode(CENTER);
-    testButton = new Button(windowWidth / 2, windowHeight / 2, windowWidth / 5, windowHeight / 10, testButtonColour, 'testButton', 1);
-    secondTestButton = new Button(windowWidth / 2, windowHeight / 2, windowWidth / 5, windowHeight / 10, testButtonColour, 'secondTestButton', 0);
-    thirdTestButton = new Button(windowWidth / 2, windowHeight / 2 + windowHeight / 10 + 10, windowWidth / 5, windowHeight / 10, testButtonColour, 'thirdTestButton', 1);
-    mainButtonArr = [testButton, thirdTestButton];
-    secondButtonArr = [secondTestButton];
+    // initialising main menu buttons
+    let mainMenuButtons = [];
+    //new simulation button
+    mainMenuButtons.push(new Button(windowWidth / 2, (windowHeight / 2) - 0.5*(windowHeight/12), windowWidth / 3, windowHeight / 15, buttonColourDefault, buttonColourHover, 'new simulation', 1));
+    // learn button
+    mainMenuButtons.push(new Button(windowWidth / 2, (windowHeight / 2) + 0.5*(windowHeight/12), windowWidth / 3, windowHeight / 15, buttonColourDefault, buttonColourHover, 'learn', 2));
+    let learnMenuButtons = [];
+    learnMenuButtons.push(new Button(windowWidth / 2, (windowHeight / 2) - 0.5*(windowHeight/12), windowWidth / 3, windowHeight / 15, buttonColourDefault, buttonColourHover, 'main menu', 0));
+    buttons[0] = mainMenuButtons;
+    buttons[2] = learnMenuButtons;
 }
 
 // called once per frame
 function update() {
     // execute different logic based on program state
     switch (state) {
-        case 0:
-            // colour test button according to relative mouse position for testing
-            menuButtonLogic(mainButtonArr);
+        case 0:  // main menu
             break;
-        case 1:
-            menuButtonLogic(secondButtonArr);
+        case 1:  // main simulation
+            break;
+        case 2:  // learn menu
+            break;
+        case 3:  // pause menu
+            break;
+        case 4:  // simulation tutorial menu
+            break;
+        case 5:  // physics info menu
+            break;
+        case 6:  // newtonian mechanics menu
             break;
         default:
             break;
@@ -48,29 +60,84 @@ function draw() {
     // black background
     background(0);
     // display different elements based on program state
+    // display buttons of current state
+    drawButtons();
     switch (state) {
-        case 0:
-            for (let button of mainButtonArr) {
-                
-            }
+        case 0:  // main menu
             break;
-        case 1:
-            secondTestButton.display();
+        case 1:  // main simulation
+            break;
+        case 2:  // learn menu
+            break;
+        case 3:  // pause menu
+            break;
+        case 4:  // simulation tutorial menu
+            break;
+        case 5:  // physics info menu
+            break;
+        case 6:  // newtonian mechanics menu
             break;
         default:
             break;
     }
 }
 
-function menuButtonLogic(buttonArr) {
+// draws buttons of current state
+function drawButtons() {
+    let stateButtons = buttons[state];
+    if (!stateButtons) {
+        return;
+    }
+    for (let button of stateButtons) {
+        button.mouseOverlapping();
+        button.display();
+    }
+}
+
+// checks if clicked on buttons in current state
+function buttonPressed() {
+    let stateButtons = buttons[state];
+    if (!stateButtons) {
+        return;
+    }
+    for (let button of stateButtons) {
+        if (button.mouseOverlapping()) {
+            state = button.getStateChange();
+        }
+    }
+}
+
+// change button colour on mouse hover
+function menuButtonColourLogic(buttonArr) {
     for (let button of buttonArr) {
         if (button.mouseOverlapping()) {
             button.setColour(testButtonHoverColour);
-            if (mouseIsPressed) {  // comment on this bug
-                state = button.getStateChange();
-            }
         } else {
             button.setColour(testButtonColour);
         }
     }
 }
+
+function mousePressed() {
+    buttonPressed();
+
+    switch (state) {
+        case 0:  // main menu
+            break;
+        case 1:  // main simulation
+            break;
+        case 2:  // learn menu
+            break;
+        case 3:  // pause menu
+            break;
+        case 4:  // simulation tutorial menu
+            break;
+        case 5:  // physics info menu
+            break;
+        case 6:  // newtonian mechanics menu
+            break;
+        default:
+            break;
+    }
+}
+
