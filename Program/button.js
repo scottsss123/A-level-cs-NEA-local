@@ -5,13 +5,13 @@ class Button extends Box {
     #stateChange;
     #txt;
 
-    constructor(inX, inY, inWidth, inHeight, inColourDefault, inColourHover, inText, inStateChange) {
+    constructor(inX, inY, inWidth, inHeight, inText, inStateChange) {
+        
         // box constructor
-        super(inX, inY, inWidth, inHeight, inColourDefault);
+        super(inX, inY, inWidth, inHeight, [50,50,200]);
         // additional variable assignment
-        this.#colourDefault = inColourDefault;
-        this.setColour(this.#colourDefault);
-        this.#colourHover = inColourHover;
+        this.#colourDefault = this.getColour();
+        this.#colourHover = [25,25,100];
         this.#stateChange = inStateChange;
         this.#txt = inText;
     }   
@@ -25,6 +25,7 @@ class Button extends Box {
     }
 
     mouseOverlapping() {
+        // true/false, mouse in button bounds
         let overlapping = super.mouseOverlapping()
         if (overlapping) {
             this.setColour(this.#colourHover);
