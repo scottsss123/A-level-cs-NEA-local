@@ -1,5 +1,16 @@
 // initialising global variables
 const states = ['main menu', 'main simulation', 'learn menu', 'pause menu', 'simulation tutorial', 'physics information', 'newtonian mechanics']
+const newtonsLawsOfMotionString =
+`Newton's laws of motion
+------------------------
+Isaac Newton formulated three 'laws' of motion, which all objects appear to follow. They are as follows:
+ 
+1. Every object perseveres in its state of rest, or of uniform motion in a right line, unless it is compelled to change that state by forces impressed thereon.
+2. The change of motion of an object is proportional to the force impressed; and is made in the direction of the straight line in which the force is impressed.
+3. To every action, there is always opposed an equal reaction; or, the mutual actions of two bodies upon each other are always equal, and directed to contrary parts.
+ 
+At a planetary scale ( like with this sandbox-simulation ) the main force acting on objects is the force due to gravity, weight. This weight, between any two bodies, is proportional to the mass of each body and is inversely proportional to the square of the distance between them.
+F = G`;
 let mainButtonWidth;
 let mainButtonHeight;
 
@@ -107,7 +118,7 @@ function setup() {
         simulationTutorialTextBoxes.push(new TextBox(learnMenuTextBoxX, learnMenuTextBoxY, learnMenuTextBoxWidth, learnMenuTextBoxHeight, 'Pause simulation  -  Escape'+'\n...'.repeat(50)));
 
         let newtonianMechanicsTextboxes = [];
-        newtonianMechanicsTextboxes.push(new TextBox(learnMenuTextBoxX, learnMenuTextBoxY, learnMenuTextBoxWidth, learnMenuTextBoxHeight, 'test'));
+        newtonianMechanicsTextboxes.push(new TextBox(learnMenuTextBoxX, learnMenuTextBoxY, learnMenuTextBoxWidth, learnMenuTextBoxHeight, newtonsLawsOfMotionString));
 
         textBoxes[0] = mainMenuTextBoxes;
         textBoxes[4] = simulationTutorialTextBoxes;
