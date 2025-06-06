@@ -1,7 +1,6 @@
 // initialising global variables
-const states = ['main menu', 'main simulation', 'learn menu', 'pause menu', 'simulation tutorial', 'physics information', 'newtonian mechanics']
-const newtonsLawsOfMotionString =
-`Newton's laws of motion
+const states = ['main menu', 'main simulation', 'learn menu', 'pause menu', 'simulation tutorial', 'physics information', 'newtonian mechanics', 'SI units']
+const newtonsLawsOfMotionString = `Newton's laws of motion
 ------------------------
 Isaac Newton formulated three 'laws' of motion, which all objects appear to follow. They are as follows:
  
@@ -9,8 +8,31 @@ Isaac Newton formulated three 'laws' of motion, which all objects appear to foll
 2. The change of motion of an object is proportional to the force impressed; and is made in the direction of the straight line in which the force is impressed.
 3. To every action, there is always opposed an equal reaction; or, the mutual actions of two bodies upon each other are always equal, and directed to contrary parts.
  
-At a planetary scale ( like with this sandbox-simulation ) the main force acting on objects is the force due to gravity, weight. This weight, between any two bodies, is proportional to the mass of each body and is inversely proportional to the square of the distance between them.
-F = G`;
+The first of these laws describes the fact that objects that are either stationary or are otherwise moving at a constant velocity are in equillibrium. These objects will remain in equillibrium while the sum of forces acting on it, it's resultant force is zero. 
+ 
+The second of these laws states that the acceleration of the body is proportional to the resultant force and inversely proportional to it's mass.
+Describing the following equation:
+    a = F / m
+Relating the following:
+    F, the resultant force acting on the body measured in newtons
+    m, the mass of the body in kilograms
+    a, the acceleration of the body in meters per second per second.
+
+This can be rearranged to the following famous equation:
+    F = ma
+ 
+The third of these laws describes how if there is ever a force acting on a body, there is another force of equal magnitude but opposite direction acting on another body.
+ 
+At a planetary scale ( like with this sandbox-simulation ) the main force acting on objects is the force between two massive bodies due to gravity, weight. This weight, between any two bodies, is proportional to the mass of each body and is inversely proportional to the square of the distance between them.
+:   F = Gm₁m₂ / r² 
+  where F is the force due to gravity on each body, in the direction between said body and the other
+        G is the gravitational constant, some number ≈ 6.67430 * 10⁻¹¹
+        m₁, m₂ are the masses of the two bodies
+  and   r is the distance between thw two bodies.`;
+const SIUnitsString = `SI Units
+----------
+SI is a french abbreviation for Système international d'unités, in english an international standard of units.`;
+const simulationTutorialString = 'Pause simulation : Escape';
 let mainButtonWidth;
 let mainButtonHeight;
 
@@ -20,7 +42,7 @@ let buttons = [];
 let textBoxes = [];
 
 let state = 0;
-// textBox displaying program state
+// textBox displaying program stateS
 let stateIndicator;
 
 // executed before setup to load assets in more modular way
@@ -83,12 +105,19 @@ function setup() {
         physicsInfoMenuButtons.push(new Button(topRightMenuButtonX, topMenuButtonY, mainButtonWidth, mainButtonHeight, 'learn', 2));
         physicsInfoMenuButtons.push(new Button(topRightMenuButtonX, topMenuButtonY + 2 * mainMenuButtonOffset, mainButtonWidth, mainButtonHeight, 'main menu', 0));
         physicsInfoMenuButtons.push(new Button(largeLeftButtonX, topMenuButtonY, largeButtonWidth, mainButtonHeight, 'newtonian mechanics', 6));
+        physicsInfoMenuButtons.push(new Button(largeLeftButtonX, topMenuButtonY + 2 * mainMenuButtonOffset, largeButtonWidth, mainButtonHeight, 'SI units', 7));
 
         // newtonian mechanics info menu buttons
         let newtonianMechanicsMenuButtons = [];
         newtonianMechanicsMenuButtons.push(new Button(topRightMenuButtonX, topMenuButtonY, mainButtonWidth, mainButtonHeight, 'physics info', 5));
         newtonianMechanicsMenuButtons.push(new Button(topRightMenuButtonX, topMenuButtonY + 2 * mainMenuButtonOffset, mainButtonWidth, mainButtonHeight, 'learn', 2));
         newtonianMechanicsMenuButtons.push(new Button(topRightMenuButtonX, topMenuButtonY + 4 * mainMenuButtonOffset, mainButtonWidth, mainButtonHeight, 'main menu', 0));
+
+        // SI units info menu buttons
+        let SIUnitsMenuButtons = [];
+        SIUnitsMenuButtons.push(new Button(topRightMenuButtonX, topMenuButtonY, mainButtonWidth, mainButtonHeight, 'physics info', 5));
+        SIUnitsMenuButtons.push(new Button(topRightMenuButtonX, topMenuButtonY + 2 * mainMenuButtonOffset, mainButtonWidth, mainButtonHeight, 'learn', 2));
+        SIUnitsMenuButtons.push(new Button(topRightMenuButtonX, topMenuButtonY + 4 * mainMenuButtonOffset, mainButtonWidth, mainButtonHeight, 'main menu', 0));
 
         // appending state button arrays to buttons array
         buttons[0] = mainMenuButtons;
@@ -97,6 +126,7 @@ function setup() {
         buttons[4] = simTutorialMenuButtons;
         buttons[5] = physicsInfoMenuButtons;
         buttons[6] = newtonianMechanicsMenuButtons;
+        buttons[7] = SIUnitsMenuButtons;
     }
     
     function initialiseMenuTextBoxes() {
@@ -108,24 +138,26 @@ function setup() {
         stateIndicator.toggleDisplayBox();
 
         let mainMenuTextBoxes = [];
-        let titleTextBox = new TextBox(windowWidth/2, windowHeight / 4, windowWidth/2, windowHeight / 8, 'space simulation');
-        titleTextBox.setTextSize(48);
+        let titleTextBox = new TextBox(windowWidth/2, windowHeight / 6, windowWidth, windowHeight / 8, 'space simulator'.toLowerCase());
+        titleTextBox.setTextSize(12*10);
         titleTextBox.toggleCentered();
         titleTextBox.toggleDisplayBox();
         mainMenuTextBoxes.push(titleTextBox);
 
         let simulationTutorialTextBoxes = [];
-        simulationTutorialTextBoxes.push(new TextBox(learnMenuTextBoxX, learnMenuTextBoxY, learnMenuTextBoxWidth, learnMenuTextBoxHeight, 'Pause simulation  -  Escape'+'\n...'.repeat(50)));
+        simulationTutorialTextBoxes.push(new TextBox(learnMenuTextBoxX, learnMenuTextBoxY, learnMenuTextBoxWidth, learnMenuTextBoxHeight, simulationTutorialString));
 
         let newtonianMechanicsTextboxes = [];
         newtonianMechanicsTextboxes.push(new TextBox(learnMenuTextBoxX, learnMenuTextBoxY, learnMenuTextBoxWidth, learnMenuTextBoxHeight, newtonsLawsOfMotionString));
 
+        let SIUnitsTextBoxes = [];
+        SIUnitsTextBoxes.push(new TextBox(learnMenuTextBoxX, learnMenuTextBoxY, learnMenuTextBoxWidth, learnMenuTextBoxHeight, SIUnitsString));
+
         textBoxes[0] = mainMenuTextBoxes;
         textBoxes[4] = simulationTutorialTextBoxes;
         textBoxes[6] = newtonianMechanicsTextboxes;
+        textBoxes[7] = SIUnitsTextBoxes;
     }
-
-    
 
     // sets up menu button and text box attributes
     initialiseMenuButtons();
@@ -149,6 +181,8 @@ function update() {
         case 5:  // physics info menu
             break;
         case 6:  // newtonian mechanics menu
+            break;
+        case 7:  // SI units menu
             break;
         default:
             break;
@@ -177,6 +211,8 @@ function draw() {
         case 5:  // physics info menu
             break;
         case 6:  // newtonian mechanics menu
+            break;
+        case 7:  // SI units menu
             break;
         default:
             break;
@@ -248,6 +284,8 @@ function mousePressed() {
             break;
         case 6:  // newtonian mechanics menu
             break;
+        case 7:  // SI units menu
+            break;
         default:
             break;
     }
@@ -271,6 +309,8 @@ function keyPressed() {
         case 5:  // physics info menu
             break;
         case 6:  // newtonian mechanics menu
+            break;
+        case 7:  // SI units menu
             break;
         default:
             break;
