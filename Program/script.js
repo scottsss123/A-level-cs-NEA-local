@@ -4,12 +4,17 @@ let mainButtonWidth;
 let mainButtonHeight;
 
 // 2d list of lists of buttons: buttons[i] is the list of buttons to be shown in state = i
-let buttons = []
+let buttons = [];
+// 2d list of lists of textBoxes: "
+let textBoxes = [];
+
 let state = 0;
+// textBox displaying program state
+let stateIndicator;
 
 // executed before setup to load assets in more modular way
 function preload() {
-
+    loadFont("./monoMMM_5.ttf");
 }
 
 // first function containing logic, is run immediately after preload by q5 library
@@ -19,6 +24,8 @@ function setup() {
     // draw rectangle objects with their co-ordinates at their center
     rectMode(CENTER);
     
+    let learnMenuTextBoxWidth;
+    let learnMenuTextBoxHeight;
     function initialiseMenuButtons() {
         mainButtonWidth = windowWidth / 3;
         mainButtonHeight = windowHeight / 15;
@@ -28,6 +35,7 @@ function setup() {
         let topMenuButtonY = mainButtonHeight / 2 + 20;
         let largeLeftButtonX = (topRightMenuButtonX - mainButtonWidth / 2) / 2;
         let largeButtonWidth = topRightMenuButtonX - mainButtonWidth / 2 - 20 - 20;
+        learnMenuTextBoxWidth = largeButtonWidth;
 
         // initialising main menu buttons
         let mainMenuButtons = [];
@@ -79,9 +87,38 @@ function setup() {
         buttons[5] = physicsInfoMenuButtons;
         buttons[6] = newtonianMechanicsMenuButtons;
     }
+    
+    function initialiseMenuTextBoxes() {
+        let learnMenuTextBoxX = 15;
+        let learnMenuTextBoxY = 25;
+        learnMenuTextBoxHeight = windowHeight - 2 * learnMenuTextBoxY;
 
-    // sets up menu buttons' attributes
+        stateIndicator = new TextBox(3,0, windowWidth / 2, 20, states[state]);
+        stateIndicator.toggleDisplayBox();
+
+        let mainMenuTextBoxes = [];
+        let titleTextBox = new TextBox(windowWidth/2, windowHeight / 4, windowWidth/2, windowHeight / 8, 'space simulation');
+        titleTextBox.setTextSize(48);
+        titleTextBox.toggleCentered();
+        titleTextBox.toggleDisplayBox();
+        mainMenuTextBoxes.push(titleTextBox);
+
+        let simulationTutorialTextBoxes = [];
+        simulationTutorialTextBoxes.push(new TextBox(learnMenuTextBoxX, learnMenuTextBoxY, learnMenuTextBoxWidth, learnMenuTextBoxHeight, 'Pause simulation  -  Escape'+'\n...'.repeat(50)));
+
+        let newtonianMechanicsTextboxes = [];
+        newtonianMechanicsTextboxes.push(new TextBox(learnMenuTextBoxX, learnMenuTextBoxY, learnMenuTextBoxWidth, learnMenuTextBoxHeight, 'test'));
+
+        textBoxes[0] = mainMenuTextBoxes;
+        textBoxes[4] = simulationTutorialTextBoxes;
+        textBoxes[6] = newtonianMechanicsTextboxes;
+    }
+
+    
+
+    // sets up menu button and text box attributes
     initialiseMenuButtons();
+    initialiseMenuTextBoxes();
 }
 
 // called once per frame
@@ -133,9 +170,11 @@ function draw() {
         default:
             break;
     }
-    // display buttons of current state
+    // display elements of current state
     drawButtons();
+    drawTextBoxes();
     drawCurrentState();
+
 }
 
 // draws buttons of current state
@@ -150,12 +189,20 @@ function drawButtons() {
     }
 }
 
+// draw textBoxes in current state
+function drawTextBoxes() {
+    let stateTextBoxes = textBoxes[state];
+    if (!stateTextBoxes) {
+        return;
+    }
+    for (let textBox of stateTextBoxes) {
+        textBox.display();
+    }
+}
+
 function drawCurrentState() {
-    fill(255);
-    textAlign(LEFT);
-    textSize(12);
-    
-    text(states[state], 5, 10);
+    stateIndicator.updateContents(states[state]);
+    stateIndicator.display();
 }
 
 // checks if clicked on buttons in current state
