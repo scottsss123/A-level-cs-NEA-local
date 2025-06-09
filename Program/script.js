@@ -167,11 +167,16 @@ function setup() {
         titleTextBox.toggleDisplayBox();
         mainMenuTextBoxes.push(titleTextBox);
 
+        // intialising main simulation info display text boxes
         timeRateTextBox = new TextBox(3 * iconWidth, height - (mainButtonHeight/2) -( 0.5 * textLeading()), width/4, mainButtonHeight / 4, '');
         timeRateTextBox.toggleDisplayBox();
         timeTextBox = new TextBox(5*iconWidth, height- (mainButtonHeight/2) -( 0.5 * textLeading()), width/4, mainButtonHeight / 4, '');
         timeTextBox.toggleDisplayBox();
-        let mainSimulationTextBoxes = [timeRateTextBox, timeTextBox];
+        camZoomTextBox = new TextBox(3 * width / 5 + 2 * iconWidth, height- (mainButtonHeight/2) -( 0.5 * textLeading()), width/4, mainButtonHeight/4, '');
+        camZoomTextBox.toggleDisplayBox();
+        camPosTextBox = new TextBox(3 * width / 5 + 4 * iconWidth, height - (mainButtonHeight /2) - (0.5* textLeading()), width/4, mainButtonHeight/4, '');
+        camPosTextBox.toggleDisplayBox();
+        let mainSimulationTextBoxes = [timeRateTextBox, timeTextBox, camZoomTextBox, camPosTextBox];
 
         let simulationTutorialTextBoxes = [];
         simulationTutorialTextBoxes.push(new TextBox(learnMenuTextBoxX, learnMenuTextBoxY, learnMenuTextBoxWidth, learnMenuTextBoxHeight, simulationTutorialString));
@@ -335,6 +340,12 @@ function mousePressed() {
         case 0:  // main menu
             break;
         case 1:  // main simulation
+            if (pauseIcon.mouseOverlapping() && currentSimulation.getTimeRate() !== 0) {
+                currentSimulation.setTimeRate(0);
+            }
+            if (playIcon.mouseOverlapping() && currentSimulation.getTimeRate() === 0) {
+                currentSimulation.setPrevTimeRate();
+            }
             break;
         case 2:  // learn menu
             break;
@@ -358,8 +369,17 @@ function keyPressed() {
         case 0:  // main menu
             break;
         case 1:  // main simulation
-            if (key == "Escape") {
-                state = 3;
+            switch (keyCode) {
+                case 'Escape':
+                    state = 3;
+                    break;
+                case 32: // spacebar
+                    if (currentSimulation.getTimeRate() !== 0) {
+                        currentSimulation.setTimeRate(0);
+                    } else {
+                        currentSimulation.setPrevTimeRate();
+                    }
+                    break;
             }
             break;
         case 2:  // learn menu
@@ -435,6 +455,8 @@ function drawCurrentSimToolbar() {
 
     drawToolbar();
     drawToolbarIcons();
-    timeRateTextBox.updateContents("x"+simTimeRate);
-    timeTextBox.updateContents("simulation time elapsed (s): " + simTime); // number of seconds elapsed for now, to be 0000000:000:00:00:00
+    timeRateTextBox.updateContents("x"+simTimeRate.toFixed(3));
+    timeTextBox.updateContents("simulation time elapsed (s): " + simTime.toFixed(3)); // number of seconds elapsed for now, to be 0000000:000:00:00:00
+    camZoomTextBox.updateContents("x"+cameraZoom.toFixed(3));
+    camPosTextBox.updateContents("( " + cameraPos[0].toFixed(3) + " , " + cameraPos[1].toFixed(3) + " )");
 }

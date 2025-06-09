@@ -3,13 +3,14 @@ class Simulation {
     #camera
     #time;
     #timeRate;
-
+    #prevTimeRate;
 
     constructor() {
         this.#camera = new Camera([0,0], 1);
         this.#bodies = [];
         this.#time = 0;
-        this.#timeRate = 1;
+        this.#timeRate = 1 / 60;
+        this.#prevTimeRate = 1;
     }
 
 
@@ -30,11 +31,13 @@ class Simulation {
         this.#time = inTime;
     }
     setTimeRate(inTimeRate) {
+        this.#prevTimeRate = this.#timeRate;
         this.#timeRate = inTimeRate;
     }
 
     updateTime() {
         this.#time += this.#timeRate;
+        this.#prevTimeRate = this.#timeRate;
     }
     addBody(inBody) {
         this.#bodies.push(inBody);
@@ -43,5 +46,7 @@ class Simulation {
         this.#time += this.#timeRate;
         return;
     }
-
+    setPrevTimeRate() {
+        this.#timeRate = this.#prevTimeRate;
+    }
 }
