@@ -33,21 +33,27 @@ const SIUnitsString = `SI Units
 ----------
 SI is a french abbreviation for Système international d'unités, in english an international standard of units.`;
 const simulationTutorialString = 'Pause simulation : Escape';
+
+let starFieldBackground;
+let earthImage;
+let moonImage;
 let mainButtonWidth;
 let mainButtonHeight;
-
 // 2d list of lists of buttons: buttons[i] is the list of buttons to be shown in state = i
 let buttons = [];
 // 2d list of lists of textBoxes: "
 let textBoxes = [];
-
 let state = 0;
 // textBox displaying program stateS
 let stateIndicator;
+let currentSimulation;
 
 // executed before setup to load assets in more modular way
 function preload() {
     loadFont("./monoMMM_5.ttf");
+    starFieldBackground = loadImage("./starfield.png");
+    earthImage = loadImage("./earth.png");
+    moonImage = loadImage("./moon.png");
 }
 
 // first function containing logic, is run immediately after preload by q5 library
@@ -59,6 +65,7 @@ function setup() {
     
     let learnMenuTextBoxWidth;
     let learnMenuTextBoxHeight;
+
     function initialiseMenuButtons() {
         mainButtonWidth = windowWidth / 3;
         mainButtonHeight = windowHeight / 15;
@@ -159,9 +166,22 @@ function setup() {
         textBoxes[7] = SIUnitsTextBoxes;
     }
 
+    function initialiseMainSimulation() {
+        currentSimulation = new Simulation();
+
+        let earth = new Body('earth', [0,0], [0,0], 5.972e24, 12756274, earthImage, [0,0,255]);
+        let moon = new Body('moon', [384400000, 0], [0,0], 7.35e22, 3474e3, moonImage, [220,220,220]);
+
+        currentSimulation.addBody(earth);
+        currentSimulation.addBody(moon);
+
+        currentSimulation.getCamera().setZoom(0.3);
+    }
+
     // sets up menu button and text box attributes
     initialiseMenuButtons();
     initialiseMenuTextBoxes();
+    initialiseMainSimulation();
 }
 
 // called once per frame
@@ -171,6 +191,8 @@ function update() {
         case 0:  // main menu
             break;
         case 1:  // main simulation
+            // currently functionless
+            currentSimulation.step();
             break;
         case 2:  // learn menu
             break;
@@ -194,13 +216,17 @@ function draw() {
     // program logic
     update();
 
-    // black background
+    // starry background
     background(0);
+    image(starFieldBackground, 0, 0, width, height);
+
     // display different elements based on program state   
     switch (state) {
         case 0:  // main menu
             break;
         case 1:  // main simulation
+            drawCurrentSimBodies();
+            //drawCurrentSimToolbar();
             break;
         case 2:  // learn menu
             break;
@@ -316,3 +342,33 @@ function keyPressed() {
             break;
     }
 }
+
+function drawCurrentSimBodies() {
+    // display images and ellipse with the given position at the center not top left corner to reduce number of calculations
+    imageMode(CENTER);
+    ellipseMode(CENTER);
+
+    // cache current simulation camera and bodies to not call .getCamera(), .getBodies() many times
+    let camera = currentSimulation.getCamera();
+    let bodies = currentSimulation.getBodies();
+
+    for (let body of bodies) {
+        // calculate body position and diameter on canvas using camera object methods
+        let canvasPos = camera.getCanvasPosition(body);
+        let canvasDiameter = camera.getCanvasDiameter(body);
+
+        // display ellipse if body has no stored image, else display the image. both at calculated canvas position and diameter
+        let bodyImage = body.getImage();
+        if (bodyImage === 0) {
+            fill(body.getColour());
+            circle(canvasPos[0], canvasPos[1], canvasDiameter);
+        } else {
+            image(bodyImage, canvasPos[0], canvasPos[1], canvasDiameter, canvasDiameter);
+        }
+    }
+
+    // return display modes to default for rest of program 
+    imageMode(CORNER); // ask rhys about commenting on this fixed bug 
+    ellipseMode(CORNER);
+}
+
