@@ -1,3 +1,6 @@
+let buttonColourDefault = [50,50,200];
+let buttonColourHover = [25,25,100];
+
 class Button extends Box {
     // private variables
     #colourDefault;
@@ -8,10 +11,10 @@ class Button extends Box {
     constructor(inX, inY, inWidth, inHeight, inText, inStateChange) {
         
         // box constructor
-        super(inX, inY, inWidth, inHeight, [50,50,200]);
+        super(inX, inY, inWidth, inHeight, buttonColourDefault);
         // additional variable assignment
         this.#colourDefault = this.getColour();
-        this.#colourHover = [25,25,100];
+        this.#colourHover = buttonColourHover;
         this.#stateChange = inStateChange;
         this.#txt = inText;
     }   

@@ -8,6 +8,8 @@ class Simulation {
     constructor() {
         this.#camera = new Camera([0,0], 1);
         this.#bodies = [];
+        this.#time = 0;
+        this.#timeRate = 1;
     }
 
 
@@ -38,6 +40,7 @@ class Simulation {
         this.#bodies.push(inBody);
     }
     step() {
+        this.#time += this.#timeRate;
         return;
     }
 

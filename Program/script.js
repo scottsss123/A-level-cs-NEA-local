@@ -34,9 +34,12 @@ const SIUnitsString = `SI Units
 SI is a french abbreviation for Système international d'unités, in english an international standard of units.`;
 const simulationTutorialString = 'Pause simulation : Escape';
 
-let starFieldBackground;
+// storing image data
+let starFieldBackgroundImage;
+let pauseIconImage,playIconImage,cameraIconImage;
 let earthImage;
 let moonImage;
+
 let mainButtonWidth;
 let mainButtonHeight;
 // 2d list of lists of buttons: buttons[i] is the list of buttons to be shown in state = i
@@ -46,14 +49,27 @@ let textBoxes = [];
 let state = 0;
 // textBox displaying program stateS
 let stateIndicator;
+// holds current simulation object
 let currentSimulation;
+// icon variables
+let pauseIcon, playIcon, cameraIcon;
+let iconWidth = 32;
+let iconHeight = 32;
+let icons = [];
+// toolbar textBox setup
+let timeRateTextBox, timeTextBox, camPosTextBox, camZoomTextBox;
 
 // executed before setup to load assets in more modular way
 function preload() {
     loadFont("./monoMMM_5.ttf");
-    starFieldBackground = loadImage("./starfield.png");
+    starFieldBackgroundImage = loadImage("./starfield.png");
+
     earthImage = loadImage("./earth.png");
     moonImage = loadImage("./moon.png");
+
+    cameraIconImage = loadImage("./cameraIcon.png");
+    pauseIconImage = loadImage("./pauseIcon.png");
+    playIconImage = loadImage("./playIcon.png");
 }
 
 // first function containing logic, is run immediately after preload by q5 library
@@ -151,6 +167,12 @@ function setup() {
         titleTextBox.toggleDisplayBox();
         mainMenuTextBoxes.push(titleTextBox);
 
+        timeRateTextBox = new TextBox(3 * iconWidth, height - (mainButtonHeight/2) -( 0.5 * textLeading()), width/4, mainButtonHeight / 4, '');
+        timeRateTextBox.toggleDisplayBox();
+        timeTextBox = new TextBox(5*iconWidth, height- (mainButtonHeight/2) -( 0.5 * textLeading()), width/4, mainButtonHeight / 4, '');
+        timeTextBox.toggleDisplayBox();
+        let mainSimulationTextBoxes = [timeRateTextBox, timeTextBox];
+
         let simulationTutorialTextBoxes = [];
         simulationTutorialTextBoxes.push(new TextBox(learnMenuTextBoxX, learnMenuTextBoxY, learnMenuTextBoxWidth, learnMenuTextBoxHeight, simulationTutorialString));
 
@@ -161,6 +183,7 @@ function setup() {
         SIUnitsTextBoxes.push(new TextBox(learnMenuTextBoxX, learnMenuTextBoxY, learnMenuTextBoxWidth, learnMenuTextBoxHeight, SIUnitsString));
 
         textBoxes[0] = mainMenuTextBoxes;
+        textBoxes[1] = mainSimulationTextBoxes;
         textBoxes[4] = simulationTutorialTextBoxes;
         textBoxes[6] = newtonianMechanicsTextboxes;
         textBoxes[7] = SIUnitsTextBoxes;
@@ -178,10 +201,22 @@ function setup() {
         currentSimulation.getCamera().setZoom(0.3);
     }
 
+    function initialiseIcons() {
+        let toolbarIconHeight = height - (mainButtonHeight / 2);
+
+        pauseIcon = new Icon(iconWidth, toolbarIconHeight, iconWidth, iconHeight, pauseIconImage);
+        playIcon = new Icon(iconWidth * 2, toolbarIconHeight, iconWidth, iconHeight, playIconImage);
+        cameraIcon = new Icon(3 * width / 5 + iconWidth, toolbarIconHeight, iconWidth, iconHeight, cameraIconImage);
+
+
+        icons[0] = [pauseIcon, playIcon, cameraIcon];
+    }
+
     // sets up menu button and text box attributes
     initialiseMenuButtons();
     initialiseMenuTextBoxes();
     initialiseMainSimulation();
+    initialiseIcons();
 }
 
 // called once per frame
@@ -218,7 +253,7 @@ function draw() {
 
     // starry background
     background(0);
-    image(starFieldBackground, 0, 0, width, height);
+    image(starFieldBackgroundImage, 0, 0, width, height);
 
     // display different elements based on program state   
     switch (state) {
@@ -226,11 +261,12 @@ function draw() {
             break;
         case 1:  // main simulation
             drawCurrentSimBodies();
-            //drawCurrentSimToolbar();
+            drawCurrentSimToolbar();
             break;
         case 2:  // learn menu
             break;
         case 3:  // pause menu
+            drawCurrentSimBodies();
             break;
         case 4:  // simulation tutorial menu
             break;
@@ -329,6 +365,9 @@ function keyPressed() {
         case 2:  // learn menu
             break;
         case 3:  // pause menu
+            if (key == "Escape") {
+                state = 1;
+            }
             break;
         case 4:  // simulation tutorial menu
             break;
@@ -372,3 +411,30 @@ function drawCurrentSimBodies() {
     ellipseMode(CORNER);
 }
 
+function drawToolbar() {
+    rectMode(CORNER);
+    fill(buttonColourDefault[0], buttonColourDefault[1], buttonColourDefault[2], 150);
+    rect(0, height - mainButtonHeight, width, mainButtonHeight);
+    rectMode(CENTER);
+}
+
+function drawToolbarIcons() {
+    imageMode(CENTER);
+    for (let icon of icons[0]) {
+        icon.display();
+    }
+    imageMode(CORNER);
+}
+
+function drawCurrentSimToolbar() {
+    let simTime = currentSimulation.getTime();
+    let simTimeRate = currentSimulation.getTimeRate();
+    let camera = currentSimulation.getCamera();
+    let cameraPos = camera.getPos();
+    let cameraZoom = camera.getZoom();
+
+    drawToolbar();
+    drawToolbarIcons();
+    timeRateTextBox.updateContents("x"+simTimeRate);
+    timeTextBox.updateContents("simulation time elapsed (s): " + simTime); // number of seconds elapsed for now, to be 0000000:000:00:00:00
+}

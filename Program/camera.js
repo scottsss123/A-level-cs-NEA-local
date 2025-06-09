@@ -2,11 +2,14 @@ class Camera {
     #pos;
     #zoom;
     #scaleFactor;
+    #focus;
+
     constructor(inPos, inZoom) {
         this.#pos = inPos;
         this.#zoom = inZoom;
         // takes diameter of earth (meters) to 100 pixels
         this.#scaleFactor = 100 / 12756274;
+        this.#focus = ''; // camera focus to be implemented later
     }
     updatePosition(displacement) {
         this.#pos[0] += displacement[0];
