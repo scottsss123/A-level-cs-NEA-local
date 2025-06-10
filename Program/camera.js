@@ -7,8 +7,8 @@ class Camera {
     constructor(inPos, inZoom) {
         this.#pos = inPos;
         this.#zoom = inZoom;
-        // takes diameter of earth (meters) to 100 pixels
-        this.#scaleFactor = 100 / 12756274;
+        // takes diameter of earth (meters) to 50 pixels
+        this.#scaleFactor = 50 / 12756274;
         this.#focus = ''; // camera focus to be implemented later
     }
     updatePosition(displacement) {
@@ -21,6 +21,9 @@ class Camera {
     }
     setZoom(inZoom) {
         this.#zoom = inZoom;
+    }
+    adjustZoom(sf) {
+        this.#zoom = sf * this.#zoom;
     }
     getCanvasPosition(body) {
         // cache body position to not call getPos() twice

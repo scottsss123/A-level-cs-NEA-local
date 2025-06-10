@@ -32,7 +32,10 @@ At a planetary scale ( like with this sandbox-simulation ) the main force acting
 const SIUnitsString = `SI Units
 ----------
 SI is a french abbreviation for Système international d'unités, in english an international standard of units.`;
-const simulationTutorialString = 'Pause simulation : Escape';
+const simulationTutorialString = `Pause Menu               :  Escape
+Stop / Start Simulation  :  Spacebar
+Camera Movement          :  w, a, s, d  /  ↑, ←, ↓, →
+Camera Zoom  (in / out)  :  scroll up   /  scroll down`;
 
 // storing image data
 let starFieldBackgroundImage;
@@ -198,12 +201,14 @@ function setup() {
         currentSimulation = new Simulation();
 
         let earth = new Body('earth', [0,0], [0,0], 5.972e24, 12756274, earthImage, [0,0,255]);
-        let moon = new Body('moon', [384400000, 0], [0,0], 7.35e22, 3474e3, moonImage, [220,220,220]);
+        let moon = new Body('moon', [384400000, 0], [0,1.022e3], 7.35e22, 3474e3, moonImage, [220,220,220]);
+        //                               check direction of motion w/ universe sanbox or other
 
         currentSimulation.addBody(earth);
         currentSimulation.addBody(moon);
 
-        currentSimulation.getCamera().setZoom(0.3);
+        currentSimulation.getCamera().setZoom(1 * (1/1.1) ** 11);
+        currentSimulation.getCamera().setPosition([0, 0]);
     }
 
     function initialiseIcons() {
@@ -231,6 +236,8 @@ function update() {
         case 0:  // main menu
             break;
         case 1:  // main simulation
+            // handle held keys, for camera movement
+            mainSimKeyHeldHandler();
             // currently functionless
             currentSimulation.step();
             break;
@@ -370,7 +377,7 @@ function keyPressed() {
             break;
         case 1:  // main simulation
             switch (keyCode) {
-                case 'Escape':
+                case 27: // escape
                     state = 3;
                     break;
                 case 32: // spacebar
@@ -385,7 +392,7 @@ function keyPressed() {
         case 2:  // learn menu
             break;
         case 3:  // pause menu
-            if (key == "Escape") {
+            if (keyCode === 27) { // escape
                 state = 1;
             }
             break;
@@ -458,5 +465,36 @@ function drawCurrentSimToolbar() {
     timeRateTextBox.updateContents("x"+simTimeRate.toFixed(3));
     timeTextBox.updateContents("simulation time elapsed (s): " + simTime.toFixed(3)); // number of seconds elapsed for now, to be 0000000:000:00:00:00
     camZoomTextBox.updateContents("x"+cameraZoom.toFixed(3));
-    camPosTextBox.updateContents("( " + cameraPos[0].toFixed(3) + " , " + cameraPos[1].toFixed(3) + " )");
+    camPosTextBox.updateContents("( " + cameraPos[0].toFixed(1) + " , " + cameraPos[1].toFixed(1) + " )");
+}
+
+function mainSimKeyHeldHandler() {
+    if (keyIsDown('d') || keyIsDown(RIGHT_ARROW)) {
+        //                               for now move camera by radius of moon
+        currentSimulation.getCamera().updatePosition([1740e3,0]);
+    } 
+    if (keyIsDown('a') || keyIsDown(LEFT_ARROW)) {
+        currentSimulation.getCamera().updatePosition([-1740e3,0]);
+    }
+    if (keyIsDown('w') || keyIsDown(UP_ARROW)) {
+        currentSimulation.getCamera().updatePosition([0,-1740e3]);
+    }
+    if (keyIsDown('s') || keyIsDown(DOWN_ARROW)) {
+        currentSimulation.getCamera().updatePosition([0,1740e3]);
+    }
+}
+
+let zoomInFactor = 1.1;
+let zoomOutFactor = 1 / 1.1;
+// q5 library function, run on any scroll wheel event where parameter event is an object containing information about the event.
+function mouseWheel(event) {
+    switch (state) {
+        case 1:  // main simulation
+            if (event.delta > 0) { // scroll down
+                currentSimulation.getCamera().adjustZoom(zoomOutFactor);
+            } else if (event.delta < 0) { // scroll up
+                currentSimulation.getCamera().adjustZoom(zoomInFactor);
+            }
+            break;
+    }
 }
