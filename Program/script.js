@@ -487,11 +487,23 @@ let zoomInFactor = 1.1;
 let zoomOutFactor = 1 / 1.1;
 // q5 library function, run on any scroll wheel event where parameter event is an object containing information about the event.
 function mouseWheel(event) {
+    let zoomIn = true;
+    if (event.delta < 0) {
+        zoomIn = false;
+    }
     switch (state) {
         case 1:  // main simulation
-            if (event.delta > 0) { // scroll down
+            if (timeRateTextBox.mouseOverlapping()) { // tune & document
+                if (zoomIn) { // scroll down 
+                    currentSimulation.updateTimeRate(zoomInFactor);
+                } else { // scroll up
+                    currentSimulation.updateTimeRate(zoomOutFactor);
+                }
+                break;
+            } 
+            if (zoomIn) { // scroll down 
                 currentSimulation.getCamera().adjustZoom(zoomOutFactor);
-            } else if (event.delta < 0) { // scroll up
+            } else { // scroll up
                 currentSimulation.getCamera().adjustZoom(zoomInFactor);
             }
             break;

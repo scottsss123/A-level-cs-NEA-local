@@ -41,6 +41,9 @@ class Simulation {
         this.#time += this.#timeRate;
         this.#prevTimeRate = this.#timeRate;
     }
+    updateTimeRate(sf) {
+        this.#timeRate *= sf;
+    }
     addBody(inBody) {
         this.#bodies.push(inBody);
     }
