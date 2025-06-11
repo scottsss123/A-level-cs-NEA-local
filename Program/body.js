@@ -62,12 +62,12 @@ class Body {
     }
     
 
-    updatePos() {
-        this.#pos[0] += this.#vel[0];
-        this.#pos[1] += this.#vel[1];
+    stepPos(inTimeRate) {
+        this.#pos[0] +=  inTimeRate * this.#vel[0];
+        this.#pos[1] +=  inTimeRate * this.#vel[1];
     }
-    addVel(inAcceleration) {
-        this.#vel[0] += inAcceleration[0];
-        this.#vel[1] += inAcceleration[1];
+    addVel(inAcceleration, inTimeRate) {
+        this.#vel[0] += inTimeRate * inAcceleration[0];
+        this.#vel[1] += inTimeRate * inAcceleration[1];
     }
 }

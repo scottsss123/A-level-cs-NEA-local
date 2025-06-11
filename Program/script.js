@@ -202,7 +202,6 @@ function setup() {
 
         let earth = new Body('earth', [0,0], [0,0], 5.972e24, 12756274, earthImage, [0,0,255]);
         let moon = new Body('moon', [384400000, 0], [0,1.022e3], 7.35e22, 3474e3, moonImage, [220,220,220]);
-        //                               check direction of motion w/ universe sanbox or other
 
         currentSimulation.addBody(earth);
         currentSimulation.addBody(moon);
@@ -440,7 +439,7 @@ function drawCurrentSimBodies() {
 
 function drawToolbar() {
     rectMode(CORNER);
-    fill(buttonColourDefault[0], buttonColourDefault[1], buttonColourDefault[2], 150);
+    fill(buttonColourDefault[0], buttonColourDefault[1], buttonColourDefault[2], 100);
     rect(0, height - mainButtonHeight, width, mainButtonHeight);
     rectMode(CENTER);
 }
