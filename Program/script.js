@@ -81,6 +81,7 @@ function setup() {
     createCanvas(windowWidth, windowHeight);
     // draw rectangle objects with their co-ordinates at their center
     rectMode(CENTER);
+    frameRate(60);
     
     let learnMenuTextBoxWidth;
     let learnMenuTextBoxHeight;
@@ -173,7 +174,7 @@ function setup() {
         // intialising main simulation info display text boxes
         timeRateTextBox = new TextBox(3 * iconWidth, height - (mainButtonHeight/2) -( 0.5 * textLeading()), width/4, mainButtonHeight / 4, '');
         timeRateTextBox.toggleDisplayBox();
-        timeTextBox = new TextBox(5*iconWidth, height- (mainButtonHeight/2) -( 0.5 * textLeading()), width/4, mainButtonHeight / 4, '');
+        timeTextBox = new TextBox(8*iconWidth, height- (mainButtonHeight/2) -( 0.5 * textLeading()), width/4, mainButtonHeight / 4, '');
         timeTextBox.toggleDisplayBox();
         camZoomTextBox = new TextBox(3 * width / 5 + 2 * iconWidth, height- (mainButtonHeight/2) -( 0.5 * textLeading()), width/4, mainButtonHeight/4, '');
         camZoomTextBox.toggleDisplayBox();
@@ -202,9 +203,15 @@ function setup() {
 
         let earth = new Body('earth', [0,0], [0,0], 5.972e24, 12756274, earthImage, [0,0,255]);
         let moon = new Body('moon', [384400000, 0], [0,1.022e3], 7.35e22, 3474e3, moonImage, [220,220,220]);
+        // third body to test physics
+        //let newBody = new Body('thirdbody', [384400000/2, 384400000/3], [0,-1.022e3],7.35e22, 3474e3,moonImage,[220,220,220]);
+        //let newBody2 = new Body('fourthBody', [-384400000/2, 384400000/3], [0,+1.022e3],7.35e22, 3474e3,moonImage,[220,220,220]);
 
         currentSimulation.addBody(earth);
         currentSimulation.addBody(moon);
+        // third body to test physics
+        //currentSimulation.addBody(newBody);
+        //currentSimulation.addBody(newBody2);
 
         currentSimulation.getCamera().setZoom(1 * (1/1.1) ** 11);
         currentSimulation.getCamera().setPosition([0, 0]);
@@ -452,6 +459,19 @@ function drawToolbarIcons() {
     imageMode(CORNER);
 }
 
+let prevFrameRates = [];
+for (let i = 0 ; i < 20; i++) {
+    prevFrameRates.push(60);
+}
+
+function getAverageFrameRate() {
+    let mean = 0;
+    for (let i = 0; i < prevFrameRates.length; i++) {
+        mean += prevFrameRates[i] * (1 / prevFrameRates.length);
+    }
+    return mean;
+}
+
 function drawCurrentSimToolbar() {
     let simTime = currentSimulation.getTime();
     let simTimeRate = currentSimulation.getTimeRate();
@@ -459,10 +479,16 @@ function drawCurrentSimToolbar() {
     let cameraPos = camera.getPos();
     let cameraZoom = camera.getZoom();
 
+    // remove first frameRate in array, and shift all others down one index
+    prevFrameRates.shift();
+    // append current frameRate to array
+    prevFrameRates.push(frameRate());
+    let averageFrameRate = getAverageFrameRate();
+
     drawToolbar();
     drawToolbarIcons();
-    timeRateTextBox.updateContents("x"+simTimeRate.toFixed(3));
-    timeTextBox.updateContents("simulation time elapsed (s): " + simTime.toFixed(3)); // number of seconds elapsed for now, to be 0000000:000:00:00:00
+    timeRateTextBox.updateContents("x"+(simTimeRate * averageFrameRate).toFixed(3));
+    timeTextBox.updateContents(secondsToDisplayTime(simTime)); 
     camZoomTextBox.updateContents("x"+cameraZoom.toFixed(3));
     camPosTextBox.updateContents("( " + cameraPos[0].toFixed(1) + " , " + cameraPos[1].toFixed(1) + " )");
 }
@@ -495,9 +521,9 @@ function mouseWheel(event) {
         case 1:  // main simulation
             if (timeRateTextBox.mouseOverlapping()) { // tune & document
                 if (zoomIn) { // scroll down 
-                    currentSimulation.updateTimeRate(zoomInFactor);
-                } else { // scroll up
                     currentSimulation.updateTimeRate(zoomOutFactor);
+                } else { // scroll up
+                    currentSimulation.updateTimeRate(zoomInFactor);
                 }
                 break;
             } 
@@ -508,4 +534,24 @@ function mouseWheel(event) {
             }
             break;
     }
+}
+
+
+let secondsPerMinute = 60;
+let secondsPerHour = 60 * secondsPerMinute;
+let secondsPerDay = 24 * secondsPerHour;
+let secondsPerYear = 365.25 * secondsPerDay;
+function secondsToDisplayTime(seconds) {
+    let outputText = "";
+    let years = Math.floor(seconds / secondsPerYear);
+    seconds -= years * secondsPerYear;
+    let days = Math.floor(seconds / secondsPerDay);
+    //if (Math.round(10*(seconds/secondsPerDay))/10 === 27.3) noLoop();
+    seconds -= days * secondsPerDay;
+    let hours = Math.floor(seconds / secondsPerHour);
+    seconds -= hours * secondsPerHour;
+    let minutes = Math.floor(seconds / secondsPerMinute);
+    seconds -= minutes * secondsPerMinute;
+    outputText += years.toString().padStart(3,'0') + ":" + days.toString().padStart(3,'0') + ":" + hours.toString().padStart(2,'0') + ":" + minutes.toString().padStart(2,'0') + ":" + Math.round(seconds).toString().padStart(2,'0');
+    return outputText;
 }
