@@ -105,6 +105,8 @@ class Simulation {
         this.#time += this.#timeRate;
         this.updateBodyVelocities();
         this.updateBodyPositions();         
+        // implement this usefully, camera follow feature
+        //this.#camera.setPosition(this.#bodies[0].getPos());
         return;
     }
 }

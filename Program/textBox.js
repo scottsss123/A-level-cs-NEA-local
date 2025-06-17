@@ -20,7 +20,7 @@ class TextBox extends Box {
         this.#textOffsetY = 5;
         this.#textPos = [inX + this.#textOffsetX, inY + this.#textOffsetY];
         this.#contents = inContents;
-        this.#textSize = 12;
+        this.#textSize = 10;
     }
 
     // draw text to canvas
@@ -42,6 +42,8 @@ class TextBox extends Box {
         fill(255);
 
         // display text, wrap text limited to text box width and height
+        //let pos = this.getPos(); /////////////////////////////fix here
+        //this.#textPos = [pos[0] + this.#textOffsetX, pos[1] + this.#textOffsetY];
         text(this.#contents, this.#textPos[0], this.#textPos[1], (this.getWidth() - 2 * this.#textOffsetX) / textWidth('a'), (this.getHeight() - 2 * this.#textOffsetY) / textLeading());
 
         // return to normal alignemnet
@@ -72,5 +74,12 @@ class TextBox extends Box {
             this.#displayBox = true;
         }
     }
+
+    setPos(pos) {
+        super.setPos([pos[0], pos[1]]);
+        this.#textPos[0] = pos[0] - this.getWidth() / 2 + this.#textOffsetX;
+        this.#textPos[1] = pos[1] - this.getHeight() / 2 + this.#textOffsetY;
+    }
+
 }
 

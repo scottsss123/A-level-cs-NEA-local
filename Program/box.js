@@ -49,4 +49,10 @@ class Box {
     setColour(inColour) {
         this.#colour = inColour;
     }
+
+    setPos(pos) {
+        this.#pos[0] = pos[0];
+        this.#pos[1] = pos[1];
+
+    }
 };

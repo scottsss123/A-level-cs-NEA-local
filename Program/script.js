@@ -33,9 +33,10 @@ const SIUnitsString = `SI Units
 ----------
 SI is a french abbreviation for Système international d'unités, in english an international standard of units.`;
 const simulationTutorialString = `Pause Menu               :  Escape
-Stop / Start Simulation  :  Spacebar
-Camera Movement          :  w, a, s, d  /  ↑, ←, ↓, →
-Camera Zoom  (in / out)  :  scroll up   /  scroll down`;
+Stop / Start Simulation           :  Spacebar
+Camera Movement                   :  w, a, s, d  /  ↑, ←, ↓, →
+Camera Zoom  (in / out)           :  scroll up   /  scroll down
+Adjust time rate (faster, slower) :  scroll up   /  scroll down  (while mouse over time rate 'x0.000') (for now)`;
 
 // storing image data
 let starFieldBackgroundImage;
@@ -78,7 +79,7 @@ function preload() {
 // first function containing logic, is run immediately after preload by q5 library
 function setup() {
     // q5 function and inbuilt variables
-    createCanvas(windowWidth, windowHeight);
+    createCanvas(windowWidth, windowHeight, WEBGL);
     // draw rectangle objects with their co-ordinates at their center
     rectMode(CENTER);
     frameRate(60);
@@ -181,6 +182,7 @@ function setup() {
         camPosTextBox = new TextBox(3 * width / 5 + 4 * iconWidth, height - (mainButtonHeight /2) - (0.5* textLeading()), width/4, mainButtonHeight/4, '');
         camPosTextBox.toggleDisplayBox();
         let mainSimulationTextBoxes = [timeRateTextBox, timeTextBox, camZoomTextBox, camPosTextBox];
+    
 
         let simulationTutorialTextBoxes = [];
         simulationTutorialTextBoxes.push(new TextBox(learnMenuTextBoxX, learnMenuTextBoxY, learnMenuTextBoxWidth, learnMenuTextBoxHeight, simulationTutorialString));
@@ -193,6 +195,7 @@ function setup() {
 
         textBoxes[0] = mainMenuTextBoxes;
         textBoxes[1] = mainSimulationTextBoxes;
+        textBoxes[3] = mainSimulationTextBoxes;
         textBoxes[4] = simulationTutorialTextBoxes;
         textBoxes[6] = newtonianMechanicsTextboxes;
         textBoxes[7] = SIUnitsTextBoxes;
@@ -204,13 +207,13 @@ function setup() {
         let earth = new Body('earth', [0,0], [0,0], 5.972e24, 12756274, earthImage, [0,0,255]);
         let moon = new Body('moon', [384400000, 0], [0,1.022e3], 7.35e22, 3474e3, moonImage, [220,220,220]);
         // third body to test physics
-        //let newBody = new Body('thirdbody', [384400000/2, 384400000/3], [0,-1.022e3],7.35e22, 3474e3,moonImage,[220,220,220]);
+        let newBody = new Body('thirdbody', [384400000/2, 384400000/3], [0,-1.022e3],7.35e22, 3474e3,moonImage,[220,220,220]);
         //let newBody2 = new Body('fourthBody', [-384400000/2, 384400000/3], [0,+1.022e3],7.35e22, 3474e3,moonImage,[220,220,220]);
 
         currentSimulation.addBody(earth);
         currentSimulation.addBody(moon);
         // third body to test physics
-        //currentSimulation.addBody(newBody);
+        currentSimulation.addBody(newBody);
         //currentSimulation.addBody(newBody2);
 
         currentSimulation.getCamera().setZoom(1 * (1/1.1) ** 11);
@@ -233,6 +236,7 @@ function setup() {
     initialiseMenuTextBoxes();
     initialiseMainSimulation();
     initialiseIcons();
+    setAccurateYear();
 }
 
 // called once per frame
@@ -269,6 +273,7 @@ function draw() {
     // program logic
     update();
 
+
     // starry background
     background(0);
     image(starFieldBackgroundImage, 0, 0, width, height);
@@ -285,6 +290,11 @@ function draw() {
             break;
         case 3:  // pause menu
             drawCurrentSimBodies();
+            // possible bodge {
+            drawCurrentSimToolbar();
+            timeRateTextBox.updateContents('x0.000')
+            timeRateTextBox.display();
+            // } not necessary to have but i think looks nice
             break;
         case 4:  // simulation tutorial menu
             break;
@@ -301,7 +311,6 @@ function draw() {
     drawButtons();
     drawTextBoxes();
     drawCurrentState();
-
 }
 
 // draws buttons of current state
@@ -328,7 +337,10 @@ function drawTextBoxes() {
 }
 
 function drawCurrentState() {
-    stateIndicator.updateContents(states[state]);
+    let newStateIndicatorContents = states[state];
+    if (state === 1) { newStateIndicatorContents += " - press 'esc' to pause"; }
+    else if (state === 3) { newStateIndicatorContents += " - press 'esc' to unpase"; }
+    stateIndicator.updateContents(newStateIndicatorContents);
     stateIndicator.display();
 }
 
@@ -345,9 +357,25 @@ function buttonsClicked() {
     }
 }
 
+// can now drag things, may be useful
+function mouseDragged() {
+    return;
+    if (buttons[0][0].mouseOverlapping()) {
+        console.log('test');
+
+        let pos = buttons[0][0].getPos();
+        buttons[0][0].setPos([pos[0] + (mouseX - pmouseX), pos[1] + (mouseY - pmouseY)]);
+        //stateIndicator.setPos([100,100]);
+    }
+}
+
 // q5 library function, run on mouse click
-function mousePressed() {
+function mouseReleased(event) {
     buttonsClicked();
+
+    // on control click (for popup explanation boxes)
+    if (event.button === 0 && event.ctrlKey)
+        console.log(event);
 
     switch (state) {
         case 0:  // main menu
@@ -554,4 +582,10 @@ function secondsToDisplayTime(seconds) {
     seconds -= minutes * secondsPerMinute;
     outputText += years.toString().padStart(3,'0') + ":" + days.toString().padStart(3,'0') + ":" + hours.toString().padStart(2,'0') + ":" + minutes.toString().padStart(2,'0') + ":" + Math.round(seconds).toString().padStart(2,'0');
     return outputText;
+}
+
+function setAccurateYear() {
+    let seconds = 0;
+    seconds += secondsPerYear * year();
+    currentSimulation.setTime(seconds);
 }
