@@ -213,7 +213,7 @@ function setup() {
         currentSimulation.addBody(earth);
         currentSimulation.addBody(moon);
         // third body to test physics
-        currentSimulation.addBody(newBody);
+        //currentSimulation.addBody(newBody);
         //currentSimulation.addBody(newBody2);
 
         currentSimulation.getCamera().setZoom(1 * (1/1.1) ** 11);
