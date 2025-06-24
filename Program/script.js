@@ -32,7 +32,7 @@ At a planetary scale ( like with this sandbox-simulation ) the main force acting
 const SIUnitsString = `SI Units
 ----------
 SI is a french abbreviation for Système international d'unités, in english an international standard of units.`;
-const simulationTutorialString = `Pause Menu               :  Escape
+const simulationTutorialString = `Pause Menu                       :  Escape
 Stop / Start Simulation           :  Spacebar
 Camera Movement                   :  w, a, s, d  /  ↑, ←, ↓, →
 Camera Zoom  (in / out)           :  scroll up   /  scroll down
@@ -208,13 +208,13 @@ function setup() {
         let moon = new Body('moon', [384400000, 0], [0,1.022e3], 7.35e22, 3474e3, moonImage, [220,220,220]);
         // third body to test physics
         let newBody = new Body('thirdbody', [384400000/2, 384400000/3], [0,-1.022e3],7.35e22, 3474e3,moonImage,[220,220,220]);
-        //let newBody2 = new Body('fourthBody', [-384400000/2, 384400000/3], [0,+1.022e3],7.35e22, 3474e3,moonImage,[220,220,220]);
+        let newBody2 = new Body('fourthBody', [-384400000/2, 384400000/3], [0,+1.022e3],7.35e22, 3474e3,moonImage,[220,220,220]);
 
         currentSimulation.addBody(earth);
         currentSimulation.addBody(moon);
         // third body to test physics
-        //currentSimulation.addBody(newBody);
-        //currentSimulation.addBody(newBody2);
+        currentSimulation.addBody(newBody);
+        currentSimulation.addBody(newBody2);
 
         currentSimulation.getCamera().setZoom(1 * (1/1.1) ** 11);
         currentSimulation.getCamera().setPosition([0, 0]);
