@@ -34,10 +34,11 @@ const SIUnitsString = `SI Units
 SI is a french abbreviation for Système international d'unités, in english an international standard of units.`;
 const simulationTutorialString = `Pause Menu                       :  Escape
 Stop / Start Simulation           :  Spacebar
-Camera Movement                   :  w, a, s, d  /  ↑, ←, ↓, →
-Camera Zoom  (in / out)           :  scroll up   /  scroll down
+Camera Movement                   :  w, a, s, d  /  ↑, ←, ↓, →. If following body, hold shift
+Camera Zoom  (in / out)           :  scroll up   /  scroll down  (hold control for more precise scrolling input)
 Adjust time rate (faster, slower) :  scroll up   /  scroll down  (while mouse over time rate 'x0.000') (for now)
-Follow body                       :  f, type body name, enter`;
+Follow body                       :  f, type body name, enter
+Pan to body                       :  p, type body name, enter`;
 
 // storing image data
 let starFieldBackgroundImage;
@@ -231,7 +232,7 @@ function setup() {
 	    //bodies.push(new Body("neptune", 1.02409e26, 4.9244e7, [4.5e12, 0],[0, 5.43e3], '#7CB7BB'));
 
         currentSimulation.getBodyByName('moon').setMinCanvasDiameter(0);
-        currentSimulation.getBodyByName('sun').setMinCanvasDiameter(6);
+        currentSimulation.getBodyByName('sun').setMinCanvasDiameter(4);
 
         currentSimulation.getCamera().setZoom(1 * (1/1.1) ** 11);
         currentSimulation.getCamera().setPosition([0, 0]);
@@ -592,20 +593,28 @@ function mouseWheel(event) {
     if (event.delta < 0) {
         zoomIn = false;
     }
+
+    let upFactor = zoomInFactor;
+    let downFactor = zoomOutFactor;
+    if (keyIsDown('control')) {
+        upFactor = 1.01;
+        downFactor = 1/1.01;
+    }
+
     switch (state) {
         case 1:  // main simulation
             if (timeRateTextBox.mouseOverlapping()) { // tune & document
                 if (zoomIn) { // scroll down 
-                    currentSimulation.updateTimeRate(zoomOutFactor);
+                    currentSimulation.updateTimeRate(downFactor);
                 } else { // scroll up
-                    currentSimulation.updateTimeRate(zoomInFactor);
+                    currentSimulation.updateTimeRate(upFactor);
                 }
                 break;
             } 
             if (zoomIn) { // scroll down 
-                currentSimulation.getCamera().adjustZoom(zoomOutFactor);
+                currentSimulation.getCamera().adjustZoom(downFactor);
             } else { // scroll up
-                currentSimulation.getCamera().adjustZoom(zoomInFactor);
+                currentSimulation.getCamera().adjustZoom(upFactor);
             }
             break;
     }
