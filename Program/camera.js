@@ -2,18 +2,22 @@ class Camera {
     #pos;
     #zoom;
     #scaleFactor;
-    #focus;
+    #focusOffset;
 
     constructor(inPos, inZoom) {
         this.#pos = inPos;
         this.#zoom = inZoom;
         // takes diameter of earth (meters) to 50 pixels
         this.#scaleFactor = 50 / 12756274;
-        this.#focus = ''; // camera focus to be implemented later
+        this.#focusOffset = [0,0];
     }
     updatePosition(displacement) {
         this.#pos[0] += displacement[0];
         this.#pos[1] += displacement[1];
+    }
+    updateFocusOffset(displacement) { 
+        this.#focusOffset[0] += displacement[0]; // it not like this
+        this.#focusOffset[1] += displacement[1];
     }
     setPosition(newPos) {
         this.#pos[0] = newPos[0];
@@ -29,8 +33,8 @@ class Camera {
         // cache body position to not call getPos() twice
         let bodyPos = body.getPos();
         // calculate body x,y on canvas relative to camera position and zoom
-        let canvasX = ((bodyPos[0] - this.#pos[0]) * this.#scaleFactor * this.#zoom) + (width / 2);
-        let canvasY = ((bodyPos[1] - this.#pos[1]) * this.#scaleFactor * this.#zoom) + (height / 2);
+        let canvasX = ((bodyPos[0] - this.#pos[0] - this.#focusOffset[0]) * this.#scaleFactor * this.#zoom) + (width / 2);
+        let canvasY = ((bodyPos[1] - this.#pos[1] - this.#focusOffset[1]) * this.#scaleFactor * this.#zoom) + (height / 2);
         return [canvasX, canvasY]; 
     }
     getCanvasDiameter(body) {
@@ -45,5 +49,9 @@ class Camera {
     }
     getScaleFactor() {
         return this.#scaleFactor;
+    }
+
+    resetFocusOffset() {
+        this.#focusOffset = [0,0];
     }
 }

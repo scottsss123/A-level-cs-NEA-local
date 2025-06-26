@@ -4,7 +4,8 @@ class Simulation {
     #time;
     #timeRate;
     #prevTimeRate;
-    #G; // gravitational constatn
+    #G; // gravitational constant
+    #focus;
 
     constructor() {
         this.#camera = new Camera([0,0], 1);
@@ -36,6 +37,14 @@ class Simulation {
         this.#prevTimeRate = this.#timeRate;
         this.#timeRate = inTimeRate;
     }
+    setFocusByName(inFocusName) {
+        let newFocus = this.getBodyByName(inFocusName);
+        if (newFocus) {
+            this.#focus = newFocus;
+        } else {
+            console.log('no body of given name - setFocusByName');
+        }
+    }
 
     updateTime() {
         this.#time += this.#timeRate;
@@ -64,6 +73,24 @@ class Simulation {
             }
         }
         return 0;
+    }
+    getBodyIndexByName(name) {
+        for (let i = 0; i < this.#bodies.length; i++) {
+            if (body.getName() === name) {
+                return body;
+            }
+        }
+    }
+    moveCameraToFocus() {
+        if (!this.#focus) { 
+            //console.log('no focus');
+            return; 
+        }
+        let focusPos = this.#focus.getPos();
+        this.#camera.setPosition(focusPos);
+    }
+    getFocus() {
+        return this.#focus;
     }
 
     updateBodyVelocities() {

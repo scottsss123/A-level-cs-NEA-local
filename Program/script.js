@@ -36,7 +36,8 @@ const simulationTutorialString = `Pause Menu                       :  Escape
 Stop / Start Simulation           :  Spacebar
 Camera Movement                   :  w, a, s, d  /  ↑, ←, ↓, →
 Camera Zoom  (in / out)           :  scroll up   /  scroll down
-Adjust time rate (faster, slower) :  scroll up   /  scroll down  (while mouse over time rate 'x0.000') (for now)`;
+Adjust time rate (faster, slower) :  scroll up   /  scroll down  (while mouse over time rate 'x0.000') (for now)
+Follow body                       :  f, type body name, enter`;
 
 // storing image data
 let starFieldBackgroundImage;
@@ -65,15 +66,23 @@ let timeRateTextBox, timeTextBox, camPosTextBox, camZoomTextBox;
 
 // executed before setup to load assets in more modular way
 function preload() {
-    loadFont("./monoMMM_5.ttf");
-    starFieldBackgroundImage = loadImage("./starfield.png");
+    loadFont("./assets/monoMMM_5.ttf");
+    starFieldBackgroundImage = loadImage("./assets/starfield.png");
 
-    earthImage = loadImage("./earth.png");
-    moonImage = loadImage("./moon.png");
+    earthImage = loadImage("./assets/earth.png");
+    venusImage = loadImage("./assets/venus.png");
+    moonImage = loadImage("./assets/moon.png");
+    marsImage = loadImage("./assets/mars.png");
+    jupiterImage = loadImage("./assets/jupiter.png");
+    sunImage = loadImage("./assets/sun.png");
+    saturnImage = loadImage("./assets/saturn.png");
+    uranusImage = loadImage("./assets/uranus.png");
+    neptuneImage = loadImage("./assets/neptune.png");
+    mercuryImage = moonImage;
 
-    cameraIconImage = loadImage("./cameraIcon.png");
-    pauseIconImage = loadImage("./pauseIcon.png");
-    playIconImage = loadImage("./playIcon.png");
+    cameraIconImage = loadImage("./assets/cameraIcon.png");
+    pauseIconImage = loadImage("./assets/pauseIcon.png");
+    playIconImage = loadImage("./assets/playIcon.png");
 }
 
 // first function containing logic, is run immediately after preload by q5 library
@@ -204,20 +213,30 @@ function setup() {
     function initialiseMainSimulation() {
         currentSimulation = new Simulation();
 
-        let earth = new Body('earth', [0,0], [0,0], 5.972e24, 12756274, earthImage, [0,0,255]);
-        let moon = new Body('moon', [384400000, 0], [0,1.022e3], 7.35e22, 3474e3, moonImage, [220,220,220]);
-        // third body to test physics
-        let newBody = new Body('thirdbody', [384400000/2, 384400000/3], [0,-1.022e3],7.35e22, 3474e3,moonImage,[220,220,220]);
-        let newBody2 = new Body('fourthBody', [-384400000/2, 384400000/3], [0,+1.022e3],7.35e22, 3474e3,moonImage,[220,220,220]);
 
-        currentSimulation.addBody(earth);
-        currentSimulation.addBody(moon);
-        // third body to test physics
-        currentSimulation.addBody(newBody);
-        currentSimulation.addBody(newBody2);
+        currentSimulation.addBody(new Body('earth', [0,0], [0,29.78e3], 5.972e24, 12756274, earthImage, [0,0,255]));
+        currentSimulation.addBody(new Body('moon', [384400000, 0], [0,29.78e3+1.022e3], 7.35e22, 3474e3, moonImage, [220,220,220]));
+        currentSimulation.addBody(new Body('sun', [-149.6e9, 0], [0,0], 1.988e30, 1.39e9, sunImage, [255,234,0]));
+        currentSimulation.addBody(new Body('mars', [-149.6e9 + 2.2794e11,0], [0,24e3], 6.4191e23, 7.9238e6, marsImage, [255,0,0]));
+        currentSimulation.addBody(new Body('mercury', [-149.6e9 + 5.791e10, 0], [0,47.4e3], 3.3011e23, 4.88e6, mercuryImage, [220,220,220]));
+        currentSimulation.addBody(new Body('venus', [-149.6e9 + 1.0821e11, 0], [0,35e3], 4.8675e24, 1.21036e7, venusImage, [200, 20, 20]));
+        currentSimulation.addBody(new Body('jupiter', [-149.6e9 + 7.7841e11, 0], [0,13.1e3], 1.8982e27, 1.42984e8, jupiterImage, [100, 50, 70]));
+        currentSimulation.addBody(new Body('saturn', [-149.6e9 + 1.43e12, 0], [0, 9.69e3], 5.683e26, 1.1647e8, saturnImage, [255,255,255]));
+        currentSimulation.addBody(new Body('uranus', [-149.6e9 + 2.87e12, 0], [0, 6.835e3], 8.6810e25, 5.0724e7, uranusImage, [255,255,255]));
+        currentSimulation.addBody(new Body('neptune', [-149.6e9 + 4.5e12, 0], [0, 5.43e3], 1.02409e26, 4.9244e7, neptuneImage, [255,255,255]));
+
+        
+	    //bodies.push(new Body("phobos", 1.06e16, 11e3, [2.2794e11, 9.376e6], [2.1e3, 24e3], 'grey'));
+	    //bodies.push(new Body("uranus", 8.6810e25, 5.0724e7, [2.87e12, 0], [0, 6.835e3], '#B2D6DB'));
+	    //bodies.push(new Body("neptune", 1.02409e26, 4.9244e7, [4.5e12, 0],[0, 5.43e3], '#7CB7BB'));
+
+        currentSimulation.getBodyByName('moon').setMinCanvasDiameter(0);
+        currentSimulation.getBodyByName('sun').setMinCanvasDiameter(6);
 
         currentSimulation.getCamera().setZoom(1 * (1/1.1) ** 11);
         currentSimulation.getCamera().setPosition([0, 0]);
+
+        //acurrentSimulation.setFocusByName('earth');
     }
 
     function initialiseIcons() {
@@ -421,6 +440,14 @@ function keyPressed() {
                         currentSimulation.setPrevTimeRate();
                     }
                     break;
+                case 70: //f
+                    currentSimulation.setFocusByName(prompt('enter body name to follow'));
+                    currentSimulation.getCamera().resetFocusOffset();
+                    break;
+                case 80: //p
+                    let b = currentSimulation.getBodyByName(prompt('enter body name to pan to'));
+                    if (!b) break;
+                    currentSimulation.getCamera().setPosition(b.getPos());
             }
             break;
         case 2:  // learn menu
@@ -448,6 +475,9 @@ function drawCurrentSimBodies() {
     imageMode(CENTER);
     ellipseMode(CENTER);
 
+    // ...
+    currentSimulation.moveCameraToFocus();
+
     // cache current simulation camera and bodies to not call .getCamera(), .getBodies() many times
     let camera = currentSimulation.getCamera();
     let bodies = currentSimulation.getBodies();
@@ -456,6 +486,10 @@ function drawCurrentSimBodies() {
         // calculate body position and diameter on canvas using camera object methods
         let canvasPos = camera.getCanvasPosition(body);
         let canvasDiameter = camera.getCanvasDiameter(body);
+        let minCanvasDiameter = body.getMinCanvasDiameter();
+        if (canvasDiameter < minCanvasDiameter) {
+            canvasDiameter = minCanvasDiameter;
+        }
 
         // display ellipse if body has no stored image, else display the image. both at calculated canvas position and diameter
         let bodyImage = body.getImage();
@@ -517,23 +551,36 @@ function drawCurrentSimToolbar() {
     drawToolbarIcons();
     timeRateTextBox.updateContents("x"+(simTimeRate * averageFrameRate).toFixed(3));
     timeTextBox.updateContents(secondsToDisplayTime(simTime)); 
-    camZoomTextBox.updateContents("x"+cameraZoom.toFixed(3));
+    camZoomTextBox.updateContents("x"+cameraZoom.toFixed(6));
     camPosTextBox.updateContents("( " + cameraPos[0].toFixed(1) + " , " + cameraPos[1].toFixed(1) + " )");
 }
 
 function mainSimKeyHeldHandler() {
+    
     if (keyIsDown('d') || keyIsDown(RIGHT_ARROW)) {
         //                               for now move camera by radius of moon
-        currentSimulation.getCamera().updatePosition([1740e3,0]);
+        if (keyIsDown('shift'))
+            currentSimulation.getCamera().updateFocusOffset([3e8/70,0]);
+        else
+            currentSimulation.getCamera().updatePosition([3e8/70,0]);
     } 
     if (keyIsDown('a') || keyIsDown(LEFT_ARROW)) {
-        currentSimulation.getCamera().updatePosition([-1740e3,0]);
+        if (keyIsDown('shift'))
+            currentSimulation.getCamera().updateFocusOffset([-3e8/70,0]);
+        else
+            currentSimulation.getCamera().updatePosition([-3e8/70,0]);
     }
     if (keyIsDown('w') || keyIsDown(UP_ARROW)) {
-        currentSimulation.getCamera().updatePosition([0,-1740e3]);
+        if (keyIsDown('shift'))
+            currentSimulation.getCamera().updateFocusOffset([0,-3e8/70]);
+        else
+            currentSimulation.getCamera().updatePosition([0,-3e8/70]);
     }
     if (keyIsDown('s') || keyIsDown(DOWN_ARROW)) {
-        currentSimulation.getCamera().updatePosition([0,1740e3]);
+        if (keyIsDown('shift'))
+            currentSimulation.getCamera().updateFocusOffset([0,3e8/70]);
+        else
+            currentSimulation.getCamera().updatePosition([0,3e8/70]);
     }
 }
 
@@ -572,9 +619,9 @@ let secondsPerYear = 365.25 * secondsPerDay;
 function secondsToDisplayTime(seconds) {
     let outputText = "";
     let years = Math.floor(seconds / secondsPerYear);
+    //if (years == 2026) currentSimulation.setTimeRate(0);
     seconds -= years * secondsPerYear;
     let days = Math.floor(seconds / secondsPerDay);
-    //if (Math.round(10*(seconds/secondsPerDay))/10 === 27.3) noLoop();
     seconds -= days * secondsPerDay;
     let hours = Math.floor(seconds / secondsPerHour);
     seconds -= hours * secondsPerHour;

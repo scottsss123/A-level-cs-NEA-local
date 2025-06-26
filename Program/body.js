@@ -6,6 +6,7 @@ class Body {
     #image;
     #colour;
     #name;
+    #minCanvasDiameter;
 
     constructor(inName, inPos, inVel, inMass, inDiameter, inImage, inColour) {
         this.#name = inName;
@@ -15,6 +16,7 @@ class Body {
         this.#diameter = inDiameter;
         this.#image = inImage;
         this.#colour = inColour;
+        this.#minCanvasDiameter = 3;
     }
 
     getName() {
@@ -38,6 +40,9 @@ class Body {
     getColour() {
         return this.#colour;
     }
+    getMinCanvasDiameter() {
+        return this.#minCanvasDiameter;
+    }
     
 
     setName(inName) {
@@ -59,6 +64,9 @@ class Body {
     }
     setImage(inImage) {
         this.#image = inImage;
+    }
+    setMinCanvasDiameter(inMinCanvasDiameter) {
+        this.#minCanvasDiameter = inMinCanvasDiameter;
     }
     
 
