@@ -93,6 +93,8 @@ let displayDistanceUnit = 'm';
 let displayMassUnit = 'kg';
 let displaySpeedUnit = 'm/s';
 
+let currentlyDragging = -1;
+
 // executed before setup to load assets in more modular way
 function preload() {
     loadFont("./assets/monoMMM_5.ttf");
@@ -155,9 +157,11 @@ function setup() {
         // initialising learn menu buttons
         let learnMenuButtons = [];
         // simulation tutorial button
-        learnMenuButtons.push(new Button(mainMenuButtonX, (windowHeight / 2) - mainMenuButtonOffset, mainButtonWidth, mainButtonHeight, 'simulation tutorial', states.indexOf('simulation tutorial menu')));
+        learnMenuButtons.push(new Button(mainMenuButtonX, (windowHeight / 2) - 3 * mainMenuButtonOffset, mainButtonWidth, mainButtonHeight, 'simulation tutorial', states.indexOf('simulation tutorial menu')));
         // physics info button
-        learnMenuButtons.push(new Button(mainMenuButtonX, (windowHeight / 2) + mainMenuButtonOffset, mainButtonWidth, mainButtonHeight, 'physics information menu', states.indexOf('physics information menu')));
+        learnMenuButtons.push(new Button(mainMenuButtonX, (windowHeight / 2) - mainMenuButtonOffset, mainButtonWidth, mainButtonHeight, 'physics information menu', states.indexOf('physics information menu')));
+        // to be added button
+        learnMenuButtons.push(new Button(mainMenuButtonX, (windowHeight / 2) + mainMenuButtonOffset, mainButtonWidth, mainButtonHeight, '...', -1));
         // main menu button
         learnMenuButtons.push(new Button(mainMenuButtonX, (windowHeight / 2) + 3 * mainMenuButtonOffset, mainButtonWidth, mainButtonHeight, 'main menu', states.indexOf('main menu')));
 
@@ -183,6 +187,8 @@ function setup() {
         physicsInfoMenuButtons.push(new Button(topRightMenuButtonX, topMenuButtonY + 2 * mainMenuButtonOffset, mainButtonWidth, mainButtonHeight, 'main menu', states.indexOf('main menu')));
         physicsInfoMenuButtons.push(new Button(largeLeftButtonX, topMenuButtonY, largeButtonWidth, mainButtonHeight, 'newtonian mechanics', states.indexOf('newtonian mechanics menu')));
         physicsInfoMenuButtons.push(new Button(largeLeftButtonX, topMenuButtonY + 2 * mainMenuButtonOffset, largeButtonWidth, mainButtonHeight, 'SI units', states.indexOf('si units menu')));
+        physicsInfoMenuButtons.push(new Button(largeLeftButtonX, topMenuButtonY + 4 * mainMenuButtonOffset, largeButtonWidth, mainButtonHeight, '...', -1));
+
 
         // newtonian mechanics info menu buttons
         let newtonianMechanicsMenuButtons = [];
@@ -198,7 +204,15 @@ function setup() {
 
         // setttings menu buttons
         let settingsMenuButtons = [];
-        settingsMenuButtons.push(new Button(topRightMenuButtonX, topMenuButtonY, mainButtonWidth, mainButtonHeight, 'simulation', states.indexOf('main simulation')));
+        // main simulation button
+        let mainSimulationButton = new Button(topRightMenuButtonX, topMenuButtonY, mainButtonWidth, mainButtonHeight, 'simulation', states.indexOf('main simulation'));
+        mainSimulationButton.onPress = () => {
+            for (let popupBox of infoPopupBoxes) {
+                popupBox.updateUnits(displayMassUnit,displaySpeedUnit,displayDistanceUnit);
+            }
+        }
+        settingsMenuButtons.push(mainSimulationButton);
+
         settingsMenuButtons.push(new Button(topRightMenuButtonX, topMenuButtonY + 2 * mainMenuButtonOffset, mainButtonWidth, mainButtonHeight, 'main menu', states.indexOf('main menu')));
         toggleMusicButton = new Button(largeLeftButtonX, topMenuButtonY, largeButtonWidth, mainButtonHeight, 'toggle sound', -1);
         // update button's onPress function to toggle the volume of the background music between 0 and 1 ( on and off )
@@ -265,6 +279,8 @@ function setup() {
         }
         settingsMenuButtons.push(changeDisplaySpeedUnitButton);
 
+        settingsMenuButtons.push(new Button(largeLeftButtonX, topMenuButtonY + 8 * mainMenuButtonOffset, largeButtonWidth, mainButtonHeight, '...', -1));
+
 
         // appending state button arrays to buttons array
         buttons[states.indexOf('main menu')] = mainMenuButtons;
@@ -323,7 +339,6 @@ function setup() {
 
     function initialiseMainSimulation() {
         currentSimulation = new Simulation();
-
 
         currentSimulation.addBody(new Body('earth', [0,0], [0,29.78e3], 5.972e24, 12756274, earthImage, [0,0,255]));
         currentSimulation.addBody(new Body('moon', [384400000, 0], [0,29.78e3+1.022e3], 7.35e22, 3474e3, moonImage, [220,220,220]));
@@ -510,29 +525,39 @@ function buttonsClicked() {
         if (button.mouseOverlapping()) {
             newState = button.getStateChange();
             // if newState is -1, button is not for navigating menus, instead performs some function.
-            if (newState === -1) {
-                button.onPress();
-            } else {
+            if (newState !== -1) {
                 state = newState;
-            }
+                
+            } 
+            button.onPress();
         }
     }
 }
 
 // can now drag things, may be useful
 function mouseDragged() {
-    return;
-    if (buttons[0][0].mouseOverlapping()) {
-        console.log('test');
+    // move popup box if mouse is dragged and initially pressed over popup box
+    if (currentlyDragging === -1) {
+        return;
+    }
 
-        let pos = buttons[0][0].getPos();
-        buttons[0][0].setPos([pos[0] + (mouseX - pmouseX), pos[1] + (mouseY - pmouseY)]);
-        //stateIndicator.setPos([100,100]);
+    let pos = currentlyDragging.getPos();
+    currentlyDragging.setPos([pos[0] + (mouseX - pmouseX), pos[1] + (mouseY - pmouseY)]);
+}
+
+function mousePressed(event) {
+    // if mouse pressed while cursor overlaps popup box, set the currently dragging variable to overlapped popup box
+    for (let popupBox of infoPopupBoxes) {
+        if (popupBox.mouseOverlapping()) {
+            currentlyDragging = popupBox;
+        }
     }
 }
 
 // q5 library function, run on mouse click
 function mouseReleased(event) {
+    // reset when mouse released
+    currentlyDragging = -1;
     buttonsClicked();
 
     // on control click (for popup explanation boxes)
@@ -553,7 +578,7 @@ function mouseReleased(event) {
             // instantiates a new info popup box if mouse is overlapping body when mouse is pressed
             for (let body of currentSimulation.getBodies()) {
                 if (currentSimulation.getCamera().mouseOverlapsBody(body, [mouseX, mouseY])) {
-                    infoPopupBoxes.push(new BodyInfoPopupBox(mouseX, mouseY, 250, 300, body, currentSimulation.getCamera()));
+                    infoPopupBoxes.push(new BodyInfoPopupBox(mouseX, mouseY, 300, 350, body, currentSimulation.getCamera(), displayMassUnit, displaySpeedUnit, displayDistanceUnit));
                 };
             }
             break;

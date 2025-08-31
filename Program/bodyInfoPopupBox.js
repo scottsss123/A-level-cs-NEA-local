@@ -2,11 +2,17 @@ class BodyInfoPopupBox extends TextBox {
     // variables linking to body and simulation camera
     #linkedBody
     #linkedCamera
+    #displayMassUnit
+    #displaySpeedUnit
+    #displayDistanceUnit
 
-    constructor(inX, inY, inWidth, inHeight, inLinkedBody, inLinkedCamera) {
+    constructor(inX, inY, inWidth, inHeight, inLinkedBody, inLinkedCamera, inDisplayMassUnit, inDisplaySpeedUnit, inDisplayDistanceUnit) {
         super(inX, inY, inWidth, inHeight, "");
         this.#linkedBody = inLinkedBody;
         this.#linkedCamera = inLinkedCamera;
+        this.#displayMassUnit = inDisplayMassUnit;
+        this.#displaySpeedUnit = inDisplaySpeedUnit;
+        this.#displayDistanceUnit = inDisplayDistanceUnit;
     }
 
     display() {
@@ -20,6 +26,8 @@ class BodyInfoPopupBox extends TextBox {
         line(pos[0] - this.getWidth() / 2, pos[1] - this.getHeight() / 2, bodyCanvasPos[0], bodyCanvasPos[1]);
     }
 
+
+    /// TODO: convert units & maybe comment more in doc
     updateBodyInfo() {
         // stores linked body's attributes
         let bodyName = this.#linkedBody.getName();
@@ -31,8 +39,23 @@ class BodyInfoPopupBox extends TextBox {
         let bodyDiameter = this.#linkedBody.getDiameter().toFixed(0);
         let bodyMass = this.#linkedBody.getMass().toFixed(0);
 
-        let newContents = "Body Name: " + bodyName + "\nBody Position (x, y):\n" + bodyPosition[0].toFixed(0) + ", " + bodyPosition[1].toFixed(0) + "\nBody velocity: " + bodyVelocityMagnitude + "\nBody direection: " + bodyVelocityDirection + "\nBody diameter: " + bodyDiameter + "\nBody mass: " + bodyMass;
+        let newContents = "Body Name: " + bodyName + "\nBody Position (x, y):\n" + bodyPosition[0].toFixed(0) + ", " + bodyPosition[1].toFixed(0) + "\nBody velocity: " + bodyVelocityMagnitude + " " + displaySpeedUnit + "\nBody direection: " + bodyVelocityDirection + "°\nBody diameter: " + bodyDiameter + " " + this.#displayDistanceUnit + "\nBody mass: " + bodyMass + " " + this.#displayMassUnit;
         // updates text contents with updated attributes
         super.updateContents(newContents);
+    }
+
+    setPosCorner(newPos) {
+        super.setPos(newPos[0] - this.getWidth() / 2 , newPos[1] - this.getHeight() / 2);
+    }
+
+    getPosCorner() {
+        let centerPos = this.getPos();
+        return [centerPos[0] - this.getWidth() / 2, centerPos[1] - this.getHeight() / 2];
+    }
+
+    updateUnits(inDisplayMassUnit, inDisplaySpeedUnit, inDisplayDistanceUnit) {
+        this.#displayMassUnit = inDisplayMassUnit;
+        this.#displaySpeedUnit = inDisplaySpeedUnit;
+        this.#displayDistanceUnit = inDisplayDistanceUnit;
     }
 };
