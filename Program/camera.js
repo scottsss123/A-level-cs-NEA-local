@@ -51,6 +51,21 @@ class Camera {
         return this.#scaleFactor;
     }
 
+    mouseOverlapsBody(body, mousePosition) {
+        // cache body's position and radius on canvas
+        let bodyCanvasPosition = this.getCanvasPosition(body);
+        let bodyRadius = this.getCanvasDiameter(body);
+        // calculate distance "radius" between center of body and mouse cursor
+        let radius = Math.sqrt((bodyCanvasPosition[0]-mousePosition[0])**2 + ((bodyCanvasPosition[1]-mousePosition[1])**2));
+        
+        // return true if cursor overlaps body
+        if (radius <= bodyRadius || radius <= body.getMinCanvasDiameter()) {
+            console.log(body.getName(), "overlaps cursor");
+            return true;
+        }
+        return false;
+    }
+
     resetFocusOffset() {
         this.#focusOffset = [0,0];
     }
