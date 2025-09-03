@@ -108,6 +108,10 @@ class Simulation {
                 let mass1 = body1.getMass();
                 let mass2 = body2.getMass();
 
+                if (mass1 === 0 || mass2 === 0) {
+                    continue;
+                }
+
                 // calculate unit vector in direction of bodyi to bodyj, unitVec
                 let dir = [pos2[0] - pos1[0], pos2[1] - pos1[1]];
                 let modDir = Math.sqrt((dir[0] ** 2) + (dir[1] ** 2));

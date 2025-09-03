@@ -41,24 +41,6 @@ Adjust time rate (faster, slower) :  scroll up   /  scroll down  (while mouse ov
 Follow body                       :  f, type body name, enter
 Pan to body                       :  p, type body name, enter`;
 
-const massUnits = {
-    "kg":1,
-    "earths":1/5.97219e24,
-    "suns":1/1.989e30
-};
-
-const distanceUnits = {
-    "m":1,
-    "earth diameters": 1/12756274,
-    "sun diameters": 1/1.39e9
-}
-
-const speedUnits = {
-    "m/s": 1,
-    "mph": 1/0.44704,
-    "c": 1/299792458
-}
-
 // storing image data
 let starFieldBackgroundImage;
 let pauseIconImage,playIconImage,cameraIconImage;
@@ -94,6 +76,8 @@ let displayMassUnit = 'kg';
 let displaySpeedUnit = 'm/s';
 
 let currentlyDragging = -1;
+let updateBodyPopupBox = -1;
+let newBodyNumber = 0;
 
 // executed before setup to load assets in more modular way
 function preload() {
@@ -206,11 +190,7 @@ function setup() {
         let settingsMenuButtons = [];
         // main simulation button
         let mainSimulationButton = new Button(topRightMenuButtonX, topMenuButtonY, mainButtonWidth, mainButtonHeight, 'simulation', states.indexOf('main simulation'));
-        mainSimulationButton.onPress = () => {
-            for (let popupBox of infoPopupBoxes) {
-                popupBox.updateUnits(displayMassUnit,displaySpeedUnit,displayDistanceUnit);
-            }
-        }
+        mainSimulationButton.onPress = updatePopupBoxUnits;
         settingsMenuButtons.push(mainSimulationButton);
 
         settingsMenuButtons.push(new Button(topRightMenuButtonX, topMenuButtonY + 2 * mainMenuButtonOffset, mainButtonWidth, mainButtonHeight, 'main menu', states.indexOf('main menu')));
@@ -279,8 +259,8 @@ function setup() {
         }
         settingsMenuButtons.push(changeDisplaySpeedUnitButton);
 
-        settingsMenuButtons.push(new Button(largeLeftButtonX, topMenuButtonY + 8 * mainMenuButtonOffset, largeButtonWidth, mainButtonHeight, '...', -1));
-
+        let mainMenuButton = new Button(largeLeftButtonX, topMenuButtonY + 8 * mainMenuButtonOffset, largeButtonWidth, mainButtonHeight, '...', -1);
+        mainMenuButton.onPress = updatePopupBoxUnits;
 
         // appending state button arrays to buttons array
         buttons[states.indexOf('main menu')] = mainMenuButtons;
@@ -340,27 +320,27 @@ function setup() {
     function initialiseMainSimulation() {
         currentSimulation = new Simulation();
 
-        currentSimulation.addBody(new Body('earth', [0,0], [0,29.78e3], 5.972e24, 12756274, earthImage, [0,0,255]));
-        currentSimulation.addBody(new Body('moon', [384400000, 0], [0,29.78e3+1.022e3], 7.35e22, 3474e3, moonImage, [220,220,220]));
-        currentSimulation.addBody(new Body('sun', [-149.6e9, 0], [0,0], 1.988e30, 1.39e9, sunImage, [255,234,0]));
-        currentSimulation.addBody(new Body('mars', [-149.6e9 + 2.2794e11,0], [0,24e3], 6.4191e23, 7.9238e6, marsImage, [255,0,0]));
-        currentSimulation.addBody(new Body('mercury', [-149.6e9 + 5.791e10, 0], [0,47.4e3], 3.3011e23, 4.88e6, mercuryImage, [220,220,220]));
-        currentSimulation.addBody(new Body('venus', [-149.6e9 + 1.0821e11, 0], [0,35e3], 4.8675e24, 1.21036e7, venusImage, [200, 20, 20]));
-        currentSimulation.addBody(new Body('jupiter', [-149.6e9 + 7.7841e11, 0], [0,13.1e3], 1.8982e27, 1.42984e8, jupiterImage, [100, 50, 70]));
-        currentSimulation.addBody(new Body('saturn', [-149.6e9 + 1.43e12, 0], [0, 9.69e3], 5.683e26, 1.1647e8, saturnImage, [255,255,255]));
-        currentSimulation.addBody(new Body('uranus', [-149.6e9 + 2.87e12, 0], [0, 6.835e3], 8.6810e25, 5.0724e7, uranusImage, [255,255,255]));
-        currentSimulation.addBody(new Body('neptune', [-149.6e9 + 4.5e12, 0], [0, 5.43e3], 1.02409e26, 4.9244e7, neptuneImage, [255,255,255]));
-
-        
-	    //bodies.push(new Body("phobos", 1.06e16, 11e3, [2.2794e11, 9.376e6], [2.1e3, 24e3], 'grey'));
-	    //bodies.push(new Body("uranus", 8.6810e25, 5.0724e7, [2.87e12, 0], [0, 6.835e3], '#B2D6DB'));
-	    //bodies.push(new Body("neptune", 1.02409e26, 4.9244e7, [4.5e12, 0],[0, 5.43e3], '#7CB7BB'));
-
-        currentSimulation.getBodyByName('moon').setMinCanvasDiameter(0);
-        currentSimulation.getBodyByName('sun').setMinCanvasDiameter(4);
-
-        currentSimulation.getCamera().setZoom(1 * (1/1.1) ** 11);
-        currentSimulation.getCamera().setPosition([0, 0]);
+        //currentSimulation.addBody(new Body('earth', [0,0], [0,29.78e3], 5.972e24, 12756274, earthImage, [0,0,255]));
+        //currentSimulation.addBody(new Body('moon', [384400000, 0], [0,29.78e3+1.022e3], 7.35e22, 3474e3, moonImage, [220,220,220]));
+        //currentSimulation.addBody(new Body('sun', [-149.6e9, 0], [0,0], 1.988e30, 1.39e9, sunImage, [255,234,0]));
+        //currentSimulation.addBody(new Body('mars', [-149.6e9 + 2.2794e11,0], [0,24e3], 6.4191e23, 7.9238e6, marsImage, [255,0,0]));
+        //currentSimulation.addBody(new Body('mercury', [-149.6e9 + 5.791e10, 0], [0,47.4e3], 3.3011e23, 4.88e6, mercuryImage, [220,220,220]));
+        //currentSimulation.addBody(new Body('venus', [-149.6e9 + 1.0821e11, 0], [0,35e3], 4.8675e24, 1.21036e7, venusImage, [200, 20, 20]));
+        //currentSimulation.addBody(new Body('jupiter', [-149.6e9 + 7.7841e11, 0], [0,13.1e3], 1.8982e27, 1.42984e8, jupiterImage, [100, 50, 70]));
+        //currentSimulation.addBody(new Body('saturn', [-149.6e9 + 1.43e12, 0], [0, 9.69e3], 5.683e26, 1.1647e8, saturnImage, [255,255,255]));
+        //currentSimulation.addBody(new Body('uranus', [-149.6e9 + 2.87e12, 0], [0, 6.835e3], 8.6810e25, 5.0724e7, uranusImage, [255,255,255]));
+        //currentSimulation.addBody(new Body('neptune', [-149.6e9 + 4.5e12, 0], [0, 5.43e3], 1.02409e26, 4.9244e7, neptuneImage, [255,255,255]));
+//
+        //
+	    ////bodies.push(new Body("phobos", 1.06e16, 11e3, [2.2794e11, 9.376e6], [2.1e3, 24e3], 'grey'));
+	    ////bodies.push(new Body("uranus", 8.6810e25, 5.0724e7, [2.87e12, 0], [0, 6.835e3], '#B2D6DB'));
+	    ////bodies.push(new Body("neptune", 1.02409e26, 4.9244e7, [4.5e12, 0],[0, 5.43e3], '#7CB7BB'));
+//
+        //currentSimulation.getBodyByName('moon').setMinCanvasDiameter(0);
+        //currentSimulation.getBodyByName('sun').setMinCanvasDiameter(4);
+//
+        //currentSimulation.getCamera().setZoom(1 * (1/1.1) ** 11);
+        //currentSimulation.getCamera().setPosition([0, 0]);
 
         //acurrentSimulation.setFocusByName('earth');
     }
@@ -389,6 +369,11 @@ function setup() {
         music.loop = true;
         music.play();
     }, 10000)
+
+    document.addEventListener('contextmenu', function (event) {
+        event.preventDefault()
+        return false
+    })
 }
 
 // called once per frame
@@ -441,6 +426,7 @@ function draw() {
 
             updateInfoPopupBoxes();
             drawInfoPopupBoxes();
+            drawUpdateBodyPopupBox();
             break;
         case 2:  // learn menu
             break;
@@ -469,6 +455,16 @@ function draw() {
     drawCurrentState();
 
     
+}
+
+function updatePopupBoxUnits() {
+    for (let popupBox of infoPopupBoxes) {
+        popupBox.updateUnits(displayMassUnit,displaySpeedUnit,displayDistanceUnit);
+    }
+    if (updateBodyPopupBox === -1) {
+        return;
+    }
+    updateBodyPopupBox.updateUnits(displayMassUnit,displaySpeedUnit,displayDistanceUnit);
 }
 
 // draws buttons of current state
@@ -504,6 +500,13 @@ function drawInfoPopupBoxes() {
     for (let popupBox of infoPopupBoxes) {
         popupBox.display();
     }
+}
+
+function drawUpdateBodyPopupBox() {
+    if (updateBodyPopupBox === -1) {
+        return;
+    }
+    updateBodyPopupBox.display();
 }
 
 function drawCurrentState() {
@@ -543,6 +546,10 @@ function mouseDragged() {
 
     let pos = currentlyDragging.getPos();
     currentlyDragging.setPos([pos[0] + (mouseX - pmouseX), pos[1] + (mouseY - pmouseY)]);
+
+    if (currentlyDragging === updateBodyPopupBox) {
+        updateBodyPopupBox.updateLinePositions();
+    }
 }
 
 function mousePressed(event) {
@@ -552,49 +559,96 @@ function mousePressed(event) {
             currentlyDragging = popupBox;
         }
     }
+    if (updateBodyPopupBox !== -1 && updateBodyPopupBox.mouseOverlapping()) {
+        currentlyDragging = updateBodyPopupBox;
+    }
 }
 
 // q5 library function, run on mouse click
 function mouseReleased(event) {
-    // reset when mouse released
-    currentlyDragging = -1;
+    
     buttonsClicked();
 
-    // on control click (for popup explanation boxes)
-    if (event.button === 0 && event.ctrlKey)
+    // on control click logs click event
+    if (event.ctrlKey)
         console.log(event);
 
-    switch (state) {
-        case 0:  // main menu
-            break;
-        case 1:  // main simulation
-            if (pauseIcon.mouseOverlapping() && currentSimulation.getTimeRate() !== 0) {
-                currentSimulation.setTimeRate(0);
+
+    // maybee swap the order of this, state first then button check
+    switch (event.button) {
+        // left click
+        case 0:
+            switch (state) {
+                case 0:  // main menu
+                    break;
+                case 1:  // main simulation
+                    // pause & play simulation if clicked icons
+                    if (pauseIcon.mouseOverlapping() && currentSimulation.getTimeRate() !== 0) {
+                        currentSimulation.setTimeRate(0);
+                        break;
+                    }
+                    if (playIcon.mouseOverlapping() && currentSimulation.getTimeRate() === 0) {
+                        currentSimulation.setPrevTimeRate();
+                        break;
+                    }
+
+                    // check for click on update body popup
+                    if (updateBodyPopupBox !== -1 && updateBodyPopupBox.mouseOverlapping()) {
+                        updateBodyPopupBox.clicked(mouseX, mouseY);
+                        break;
+                    }
+
+                    // instantiates a new info popup box if mouse is overlapping body when mouse is pressed
+                    // this goes from start to end, results in removing bottom box, reverse for beter ux
+                    let addedNewInfoPopup = false;
+                    for (let body of currentSimulation.getBodies()) {
+                        if (currentSimulation.getCamera().mouseOverlapsBody(body, [mouseX, mouseY])) {
+                            infoPopupBoxes.push(new BodyInfoPopupBox(mouseX, mouseY, 400, 250, body, currentSimulation.getCamera(), displayMassUnit, displaySpeedUnit, displayDistanceUnit));
+                            addedNewInfoPopup = true;
+                        };
+                    }
+                    if (addedNewInfoPopup) break;
+
+                    // reset when mouse released
+                    if (currentlyDragging === -1) {
+                        updateBodyPopupBox = -1;
+                    }
+
+                    currentlyDragging = -1;
+
+                break;
             }
-            if (playIcon.mouseOverlapping() && currentSimulation.getTimeRate() === 0) {
-                currentSimulation.setPrevTimeRate();
+        break;
+        // right click
+        case 2:
+            switch (state) {
+                case 0:
+                    break;
+                case 1:
+                    // remove info popup box from popup boxes array on overlapping right click
+                    for (let popupBox of infoPopupBoxes) {
+                        if (popupBox.mouseOverlapping()) {
+                            infoPopupBoxes.splice(infoPopupBoxes.indexOf(popupBox), 1);
+                            return;
+                        }
+                    }
+                    // set updatebodypopup box variable to new popup box or reset if right click on body or not
+                    let overlappingBody = false;
+                    for (let body of currentSimulation.getBodies()) {
+                        if (currentSimulation.getCamera().mouseOverlapsBody(body, [mouseX,mouseY])) {
+                            updateBodyPopupBox = new UpdateBodyPopupBox(mouseX, mouseY, 400, 250, body, currentSimulation.getCamera(), displayMassUnit, displaySpeedUnit, displayDistanceUnit);
+                            overlappingBody = true;
+                            return;
+                        }
+                    }
+                    if (!overlappingBody) {
+                        newBodyNumber++;
+                        let newBodyName = 'body ' + newBodyNumber;
+                        currentSimulation.addBody(new Body(newBodyName, currentSimulation.getCamera().getCursorSimPosition(mouseX,mouseY), [0,0], 0, 0, 0, [random(255), random(255), random(255)]));
+                        updateBodyPopupBox = new UpdateBodyPopupBox(mouseX, mouseY, 400, 250, currentSimulation.getBodyByName(newBodyName), currentSimulation.getCamera(), displayMassUnit, displaySpeedUnit, displayDistanceUnit);
+                    }
             }
 
-            // instantiates a new info popup box if mouse is overlapping body when mouse is pressed
-            for (let body of currentSimulation.getBodies()) {
-                if (currentSimulation.getCamera().mouseOverlapsBody(body, [mouseX, mouseY])) {
-                    infoPopupBoxes.push(new BodyInfoPopupBox(mouseX, mouseY, 300, 350, body, currentSimulation.getCamera(), displayMassUnit, displaySpeedUnit, displayDistanceUnit));
-                };
-            }
-            break;
-        case 2:  // learn menu
-            break;
-        case 3:  // pause menu
-            break;
-        case 4:  // simulation tutorial menu
-            break;
-        case 5:  // physics info menu
-            break;
-        case 6:  // newtonian mechanics menu
-            break;
-        case 7:  // SI units menu
-            break;
-        default:
             break;
     }
 
