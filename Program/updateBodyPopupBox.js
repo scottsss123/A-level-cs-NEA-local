@@ -61,31 +61,40 @@ class UpdateBodyPopupBox extends Box {
     clicked(x, y) {
         if (x < this.leftX || x > this.rightX || y < this.topY || y > this.bottomY) {
             console.log('mouse out of update body popup bounds on click')
-            return;
+            return true;
         }
         if (y < this.underNameLineY) {
             console.log('change nothing');
         } else if (y < this.underMassLineY) {
-            this.changeMass();
+            if(!this.changeMass()) {
+                return false;
+            }
         } else if (y < this.underDiameterLineY) {
             this.changeDiameter();
         } else if (y < this.bottomY) {
             this.changeVelocity();
         }
+        return true;
     }
 
     changeMass() {
         // prompt the user for a new body mass, with the current unit 
         let userInput = prompt('Enter new body mass ( ' + this.#displayMassUnit + ' ) (= ' + (1/massUnits[this.#displayMassUnit]).toPrecision(3) + 'kg )');
         // return / break out of method if user enters invalid answer e.g non-numeric
-        if (!userInput || userInput <= 0 || !parseFloat(userInput)) {
+        if (!userInput || userInput < 0 || !parseFloat(userInput)) {
             return;
         }
         // convert user input to float and standard unit
         let numInput = parseFloat(userInput);
+        // return false to delete attached body
+        if (numInput === 0) {
+            return false;
+        }
         let newMass = numInput * (1/massUnits[this.#displayMassUnit]);
         // update linked body's mass
         this.#linkedBody.setMass(newMass);
+
+        return true;
     }
 
     changeDiameter() {
@@ -137,7 +146,10 @@ class UpdateBodyPopupBox extends Box {
             this.#linkedBody.setVel(newVel);
         }
     }
-}
 
+    getLinkedBody() {
+        return this.#linkedBody;
+    }
+}
 
 

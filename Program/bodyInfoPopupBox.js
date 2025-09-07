@@ -61,7 +61,7 @@ class BodyInfoPopupBox extends TextBox {
         let bodyDiameter = (this.#linkedBody.getDiameter() * distanceUnits[this.#displayDistanceUnit]).toPrecision(3);
         let bodyMass = (this.#linkedBody.getMass() *  massUnits[this.#displayMassUnit]).toPrecision(3);
 
-        let newContents = "Body Name: " + bodyName + "\n\nBody Position (x, y):\n" + (bodyPosition[0] * distanceUnits[this.#displayDistanceUnit]).toPrecision(3) + " " + this.#displayDistanceUnit + ", " + (bodyPosition[1] * distanceUnits[this.#displayDistanceUnit]).toPrecision(3) + " " + this.#displayDistanceUnit + "\nBody mass: " + bodyMass + " " + this.#displayMassUnit + "\nBody diameter: " + bodyDiameter + " " + this.#displayDistanceUnit + "\nBody velocity: " + bodyVelocityMagnitude + " " + displaySpeedUnit + "\nBody direection: " + bodyVelocityDirection + '°';
+        let newContents = "Body Name: " + bodyName + "\n \nBody Position (x, y):\n" + (bodyPosition[0] * distanceUnits[this.#displayDistanceUnit]).toPrecision(3) + " " + this.#displayDistanceUnit + ", " + (bodyPosition[1] * distanceUnits[this.#displayDistanceUnit]).toPrecision(3) + " " + this.#displayDistanceUnit + "\nBody mass: " + bodyMass + " " + this.#displayMassUnit + "\nBody diameter: " + bodyDiameter + " " + this.#displayDistanceUnit + "\nBody velocity: " + bodyVelocityMagnitude + " " + displaySpeedUnit + "\nBody direection: " + bodyVelocityDirection + '°';
         // updates text contents with updated attributes
         super.updateContents(newContents);
     }

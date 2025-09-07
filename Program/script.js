@@ -593,8 +593,11 @@ function mouseReleased(event) {
                     }
 
                     // check for click on update body popup
+                    // if clicked returns false, linked body is deleted
                     if (updateBodyPopupBox !== -1 && updateBodyPopupBox.mouseOverlapping()) {
-                        updateBodyPopupBox.clicked(mouseX, mouseY);
+                        if (!updateBodyPopupBox.clicked(mouseX, mouseY)) {
+                            currentSimulation.getBodies().splice(currentSimulation.getBodies().indexOf(updateBodyPopupBox.getLinkedBody()), 1);
+                        }
                         break;
                     }
 
@@ -782,10 +785,10 @@ function drawCurrentSimToolbar() {
 
     drawToolbar();
     drawToolbarIcons();
-    timeRateTextBox.updateContents("x"+(simTimeRate * averageFrameRate).toFixed(3));
+    timeRateTextBox.updateContents("x"+(simTimeRate * averageFrameRate).toPrecision(3));
     timeTextBox.updateContents(secondsToDisplayTime(simTime)); 
-    camZoomTextBox.updateContents("x"+cameraZoom.toFixed(6));
-    camPosTextBox.updateContents("( " + cameraPos[0].toFixed(1) + " , " + cameraPos[1].toFixed(1) + " )");
+    camZoomTextBox.updateContents("x"+cameraZoom.toPrecision(3));
+    camPosTextBox.updateContents("( " + cameraPos[0].toPrecision(3) + " , " + cameraPos[1].toPrecision(3) + " )");
 }
 
 function mainSimKeyHeldHandler() {
