@@ -12,8 +12,9 @@ class Simulation {
         this.#bodies = [];
         this.#time = 0;
         this.#timeRate = 0;
-        this.#prevTimeRate = 1/60;
+        this.#prevTimeRate = 1/60 * 1000;
         this.#G = 6.67430e-11;
+        this.#focus = false;
     }
 
 
@@ -42,7 +43,9 @@ class Simulation {
         if (newFocus) {
             this.#focus = newFocus;
         } else {
+            // reset simulation focus if nothing inputted into prompt
             console.log('no body of given name - setFocusByName');
+            this.#focus = false;
         }
     }
 
@@ -72,7 +75,7 @@ class Simulation {
                 return body;
             }
         }
-        return 0;
+        return false;
     }
     getBodyIndexByName(name) {
         for (let i = 0; i < this.#bodies.length; i++) {

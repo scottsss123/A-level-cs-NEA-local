@@ -33,13 +33,17 @@ At a planetary scale ( like with this sandbox-simulation ) the main force acting
 const SIUnitsString = `SI Units
 ----------
 SI is a french abbreviation for Système international d'unités, in english an international standard of units.`;
-const simulationTutorialString = `Pause Menu                       :  Escape
+const simulationTutorialString = 
+`Pause Menu                        :  Escape
 Stop / Start Simulation           :  Spacebar
-Camera Movement                   :  w, a, s, d  /  ↑, ←, ↓, →. If following body, hold shift
+Camera Movement                   :  w, a, s, d  /  ↑, ←, ↓, →
 Camera Zoom  (in / out)           :  scroll up   /  scroll down  (hold control for more precise scrolling input)
 Adjust time rate (faster, slower) :  scroll up   /  scroll down  (while mouse over time rate 'x0.000') (for now)
 Follow body                       :  f, type body name, enter
-Pan to body                       :  p, type body name, enter`;
+Pan to body                       :  p, type body name, enter
+Create body info box              :  left click on body
+Create body change box            :  right click on body
+Create new body                   :  Control + Right click outside body`;
 
 // storing image data
 let starFieldBackgroundImage;
@@ -322,7 +326,11 @@ function setup() {
 
         currentSimulation.addBody(new Body('earth', [0,0], [0,29.78e3], 5.972e24, 12756274, earthImage, [0,0,255]));
         currentSimulation.addBody(new Body('moon', [384400000, 0], [0,29.78e3+1.022e3], 7.35e22, 3474e3, moonImage, [220,220,220]));
-        currentSimulation.addBody(new Body('sun', [-149.6e9, 0], [0,0], 1.988e30, 1.39e9, sunImage, [255,234,0]));
+
+        
+
+        //currentSimulation.addBody(new Body('sun', [-149.6e9, 0], [0,0], 1.988e30, 1.39e9, sunImage, [255,234,0]));
+
         //currentSimulation.addBody(new Body('mars', [-149.6e9 + 2.2794e11,0], [0,24e3], 6.4191e23, 7.9238e6, marsImage, [255,0,0]));
         //currentSimulation.addBody(new Body('mercury', [-149.6e9 + 5.791e10, 0], [0,47.4e3], 3.3011e23, 4.88e6, mercuryImage, [220,220,220]));
         //currentSimulation.addBody(new Body('venus', [-149.6e9 + 1.0821e11, 0], [0,35e3], 4.8675e24, 1.21036e7, venusImage, [200, 20, 20]));
@@ -574,7 +582,7 @@ function mouseReleased(event) {
         console.log(event);
 
 
-    // maybee swap the order of this, state first then button check
+    // maybe swap the order of this, state first then button check
     switch (event.button) {
         // left click
         case 0:
@@ -629,9 +637,10 @@ function mouseReleased(event) {
                     break;
                 case 1:
                     // remove info popup box from popup boxes array on overlapping right click
-                    for (let popupBox of infoPopupBoxes) {
+                    for (let i = infoPopupBoxes.length - 1; i >= 0; i--) {
+                        let popupBox = infoPopupBoxes[i];
                         if (popupBox.mouseOverlapping()) {
-                            infoPopupBoxes.splice(infoPopupBoxes.indexOf(popupBox), 1);
+                            infoPopupBoxes.splice(i, 1);
                             return;
                         }
                     }
@@ -644,7 +653,8 @@ function mouseReleased(event) {
                             return;
                         }
                     }
-                    if (!overlappingBody) {
+                    // create new body if cursor doesn't overlap body and control key is held
+                    if (!overlappingBody && event.ctrlKey) {
                         newBodyNumber++;
                         let newBodyName = 'body ' + newBodyNumber;
                         currentSimulation.addBody(new Body(newBodyName, currentSimulation.getCamera().getCursorSimPosition(mouseX,mouseY), [0,0], 0, 0, 0, [random(255), random(255), random(255)]));
@@ -794,26 +804,25 @@ function drawCurrentSimToolbar() {
 function mainSimKeyHeldHandler() {
     
     if (keyIsDown('d') || keyIsDown(RIGHT_ARROW)) {
-        //                               for now move camera by radius of moon
-        if (keyIsDown('shift'))
+        if (!currentSimulation.getFocus())
             currentSimulation.getCamera().updateFocusOffset([3e8/70,0]);
         else
             currentSimulation.getCamera().updatePosition([3e8/70,0]);
     } 
     if (keyIsDown('a') || keyIsDown(LEFT_ARROW)) {
-        if (keyIsDown('shift'))
+        if (!currentSimulation.getFocus())
             currentSimulation.getCamera().updateFocusOffset([-3e8/70,0]);
         else
             currentSimulation.getCamera().updatePosition([-3e8/70,0]);
     }
     if (keyIsDown('w') || keyIsDown(UP_ARROW)) {
-        if (keyIsDown('shift'))
+        if (!currentSimulation.getFocus())
             currentSimulation.getCamera().updateFocusOffset([0,-3e8/70]);
         else
             currentSimulation.getCamera().updatePosition([0,-3e8/70]);
     }
     if (keyIsDown('s') || keyIsDown(DOWN_ARROW)) {
-        if (keyIsDown('shift'))
+        if (!currentSimulation.getFocus())
             currentSimulation.getCamera().updateFocusOffset([0,3e8/70]);
         else
             currentSimulation.getCamera().updatePosition([0,3e8/70]);
