@@ -1,5 +1,5 @@
 // initialising global variables
-const states = ['main menu', 'main simulation', 'learn menu', 'pause menu', 'simulation tutorial', 'physics information', 'newtonian mechanics', 'SI units', 'simulation info'];
+const states = ['main menu', 'main simulation', 'learn menu', 'pause menu', 'simulation tutorial', 'physics information', 'newtonian mechanics', 'SI units']
 const newtonsLawsOfMotionString = `Newton's laws of motion
 ------------------------
 Isaac Newton formulated three 'laws' of motion, which all objects appear to follow. They are as follows:
@@ -118,7 +118,7 @@ function setup() {
         // initialising learn menu buttons
         let learnMenuButtons = [];
         // simulation tutorial button
-        learnMenuButtons.push(new Button(mainMenuButtonX, (windowHeight / 2) - mainMenuButtonOffset, mainButtonWidth, mainButtonHeight, 'simulation info', 8));
+        learnMenuButtons.push(new Button(mainMenuButtonX, (windowHeight / 2) - mainMenuButtonOffset, mainButtonWidth, mainButtonHeight, 'simulation tutorial', 4));
         // physics info button
         learnMenuButtons.push(new Button(mainMenuButtonX, (windowHeight / 2) + mainMenuButtonOffset, mainButtonWidth, mainButtonHeight, 'physics information', 5));
         // main menu button
@@ -135,7 +135,7 @@ function setup() {
 
         // simulation tutorial menu buttons
         let simTutorialMenuButtons = [];
-        simTutorialMenuButtons.push(new Button(topRightMenuButtonX, topMenuButtonY, mainButtonWidth, mainButtonHeight, 'simultion info', 8));
+        simTutorialMenuButtons.push(new Button(topRightMenuButtonX, topMenuButtonY, mainButtonWidth, mainButtonHeight, 'learn', 2));
         simTutorialMenuButtons.push(new Button(topRightMenuButtonX, topMenuButtonY + 2 * mainMenuButtonOffset, mainButtonWidth, mainButtonHeight, 'main menu', 0));
 
         // physics info menu buttons
@@ -157,12 +157,6 @@ function setup() {
         SIUnitsMenuButtons.push(new Button(topRightMenuButtonX, topMenuButtonY + 2 * mainMenuButtonOffset, mainButtonWidth, mainButtonHeight, 'learn', 2));
         SIUnitsMenuButtons.push(new Button(topRightMenuButtonX, topMenuButtonY + 4 * mainMenuButtonOffset, mainButtonWidth, mainButtonHeight, 'main menu', 0));
 
-        // simulation info buttons
-        let simulationInfoButtons = [];
-        simulationInfoButtons.push(new Button(windowWidth / 2, (windowHeight / 2) - mainMenuButtonOffset, mainButtonWidth, mainButtonHeight, 'simulation tutorial', 4));
-        simulationInfoButtons.push(new Button(windowWidth / 2, (windowHeight / 2) + mainMenuButtonOffset, mainButtonWidth, mainButtonHeight, 'learn', 2));
-        simulationInfoButtons.push(new Button(windowWidth / 2, (windowHeight / 2) + 3 * mainMenuButtonOffset, mainButtonWidth, mainButtonHeight, 'main menu', 0));
-
         // appending state button arrays to buttons array
         buttons[0] = mainMenuButtons;
         buttons[2] = learnMenuButtons;
@@ -171,7 +165,6 @@ function setup() {
         buttons[5] = physicsInfoMenuButtons;
         buttons[6] = newtonianMechanicsMenuButtons;
         buttons[7] = SIUnitsMenuButtons;
-        buttons[8] = simulationInfoButtons;
     }
     
     function initialiseMenuTextBoxes() {
@@ -222,16 +215,16 @@ function setup() {
         currentSimulation = new Simulation();
 
 
-        currentSimulation.addBody(new Body('sun', [0, 0], [0,0], 1.988e30, 1.39e9, sunImage, [255,234,0]));
-        currentSimulation.addBody(new Body('mercury', [5.791e10, 0], [0,47.4e3], 3.3011e23, 4.88e6, mercuryImage, [220,220,220]));
-        currentSimulation.addBody(new Body('venus', [1.0821e11, 0], [0,35e3], 4.8675e24, 1.21036e7, venusImage, [200, 20, 20]));
-        currentSimulation.addBody(new Body('earth', [1.496e11,0], [0,29.78e3], 5.972e24, 12756274, earthImage, [0,0,255]));
-        currentSimulation.addBody(new Body('moon', [1.496e11 + 384400000, 0], [0,29.78e3+1.022e3], 7.35e22, 3474e3, moonImage, [220,220,220]));
-        currentSimulation.addBody(new Body('mars', [2.2794e11,0], [0,24e3], 6.4191e23, 7.9238e6, marsImage, [255,0,0]));
-        currentSimulation.addBody(new Body('jupiter', [7.7841e11, 0], [0,13.1e3], 1.8982e27, 1.42984e8, jupiterImage, [100, 50, 70]));
-        currentSimulation.addBody(new Body('saturn', [1.43e12, 0], [0, 9.69e3], 5.683e26, 1.1647e8, saturnImage, [255,255,255]));
-        currentSimulation.addBody(new Body('uranus', [2.87e12, 0], [0, 6.835e3], 8.6810e25, 5.0724e7, uranusImage, [255,255,255]));
-        currentSimulation.addBody(new Body('neptune', [4.5e12, 0], [0, 5.43e3], 1.02409e26, 4.9244e7, neptuneImage, [255,255,255]));
+        currentSimulation.addBody(new Body('earth', [0,0], [0,29.78e3], 5.972e24, 12756274, earthImage, [0,0,255]));
+        currentSimulation.addBody(new Body('moon', [384400000, 0], [0,29.78e3+1.022e3], 7.35e22, 3474e3, moonImage, [220,220,220]));
+        currentSimulation.addBody(new Body('sun', [-149.6e9, 0], [0,0], 1.988e30, 1.39e9, sunImage, [255,234,0]));
+        currentSimulation.addBody(new Body('mars', [-149.6e9 + 2.2794e11,0], [0,24e3], 6.4191e23, 7.9238e6, marsImage, [255,0,0]));
+        currentSimulation.addBody(new Body('mercury', [-149.6e9 + 5.791e10, 0], [0,47.4e3], 3.3011e23, 4.88e6, mercuryImage, [220,220,220]));
+        currentSimulation.addBody(new Body('venus', [-149.6e9 + 1.0821e11, 0], [0,35e3], 4.8675e24, 1.21036e7, venusImage, [200, 20, 20]));
+        currentSimulation.addBody(new Body('jupiter', [-149.6e9 + 7.7841e11, 0], [0,13.1e3], 1.8982e27, 1.42984e8, jupiterImage, [100, 50, 70]));
+        currentSimulation.addBody(new Body('saturn', [-149.6e9 + 1.43e12, 0], [0, 9.69e3], 5.683e26, 1.1647e8, saturnImage, [255,255,255]));
+        currentSimulation.addBody(new Body('uranus', [-149.6e9 + 2.87e12, 0], [0, 6.835e3], 8.6810e25, 5.0724e7, uranusImage, [255,255,255]));
+        currentSimulation.addBody(new Body('neptune', [-149.6e9 + 4.5e12, 0], [0, 5.43e3], 1.02409e26, 4.9244e7, neptuneImage, [255,255,255]));
 
         
 	    //bodies.push(new Body("phobos", 1.06e16, 11e3, [2.2794e11, 9.376e6], [2.1e3, 24e3], 'grey'));
@@ -242,7 +235,7 @@ function setup() {
         currentSimulation.getBodyByName('sun').setMinCanvasDiameter(4);
 
         currentSimulation.getCamera().setZoom(1 * (1/1.1) ** 11);
-        currentSimulation.getCamera().setPosition([1.496e11,0]);
+        currentSimulation.getCamera().setPosition([0, 0]);
 
         //acurrentSimulation.setFocusByName('earth');
     }
@@ -408,19 +401,11 @@ function mouseReleased(event) {
         case 0:  // main menu
             break;
         case 1:  // main simulation
-        // comment on this change
-            //if (pauseIcon.mouseOverlapping() && currentSimulation.getTimeRate() !== 0) {
-            //    currentSimulation.setTimeRate(0);
-            //}
-            //if (playIcon.mouseOverlapping() && currentSimulation.getTimeRate() === 0) {
-            //    currentSimulation.setPrevTimeRate();
-            //}
-            if (pauseIcon.mouseOverlapping() || playIcon.mouseOverlapping()) {
-                if (currentSimulation.getTimeRate() === 0) {
-                    currentSimulation.setPrevTimeRate();
-                } else {
-                    currentSimulation.setTimeRate(0);
-                }
+            if (pauseIcon.mouseOverlapping() && currentSimulation.getTimeRate() !== 0) {
+                currentSimulation.setTimeRate(0);
+            }
+            if (playIcon.mouseOverlapping() && currentSimulation.getTimeRate() === 0) {
+                currentSimulation.setPrevTimeRate();
             }
             break;
         case 2:  // learn menu
@@ -659,13 +644,4 @@ function setAccurateYear() {
     let seconds = 0;
     seconds += secondsPerYear * year();
     currentSimulation.setTime(seconds);
-}
-
-function getStateIndexByName(name) {
-    for (let i = 0; i < states.length; i++) {
-        if (states[i] === name) {
-            return i;
-        }
-    }
-    return -1;
 }
