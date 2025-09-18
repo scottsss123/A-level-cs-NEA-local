@@ -27,6 +27,7 @@ class TextBox extends Box {
     display() {
         // display box
         if (this.#displayBox) {
+            stroke('white');
             super.display();
         }
 
@@ -40,6 +41,7 @@ class TextBox extends Box {
         rectMode(CORNER);
         textSize(this.#textSize);
         fill(255);
+        noStroke();
 
         // display text, wrap text limited to text box width and height
         //let pos = this.getPos(); /////////////////////////////fix here

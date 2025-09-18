@@ -1,5 +1,6 @@
 // initialising global variables
-const states = ['main menu', 'main simulation', 'learn menu', 'pause menu', 'simulation tutorial', 'physics information', 'newtonian mechanics', 'SI units', 'simulation info'];
+const states = ['main menu', 'main simulation', 'learn menu', 'pause menu', 'simulation tutorial menu', 'physics information menu', 'newtonian mechanics menu', 'si units menu', 'settings menu'];
+
 const newtonsLawsOfMotionString = `Newton's laws of motion
 ------------------------
 Isaac Newton formulated three 'laws' of motion, which all objects appear to follow. They are as follows:
@@ -32,19 +33,27 @@ At a planetary scale ( like with this sandbox-simulation ) the main force acting
 const SIUnitsString = `SI Units
 ----------
 SI is a french abbreviation for Système international d'unités, in english an international standard of units.`;
-const simulationTutorialString = `Pause Menu                       :  Escape
+const simulationTutorialString = 
+`Pause Menu                        :  Escape
 Stop / Start Simulation           :  Spacebar
-Camera Movement                   :  w, a, s, d  /  ↑, ←, ↓, →. If following body, hold shift
+Camera Movement                   :  w, a, s, d  /  ↑, ←, ↓, →
 Camera Zoom  (in / out)           :  scroll up   /  scroll down  (hold control for more precise scrolling input)
 Adjust time rate (faster, slower) :  scroll up   /  scroll down  (while mouse over time rate 'x0.000') (for now)
 Follow body                       :  f, type body name, enter
-Pan to body                       :  p, type body name, enter`;
+Pan to body                       :  p, type body name, enter
+Create body info box              :  left click on body
+Create body change box            :  right click on body
+Create new body                   :  Control + Right click outside body`;
 
 // storing image data
 let starFieldBackgroundImage;
 let pauseIconImage,playIconImage,cameraIconImage;
 let earthImage;
 let moonImage;
+
+// music data
+let music;
+let switchSound;
 
 let mainButtonWidth;
 let mainButtonHeight;
@@ -64,6 +73,15 @@ let iconHeight = 32;
 let icons = [];
 // toolbar textBox setup
 let timeRateTextBox, timeTextBox, camPosTextBox, camZoomTextBox;
+let infoPopupBoxes = [];
+
+let displayDistanceUnit = 'm';
+let displayMassUnit = 'kg';
+let displaySpeedUnit = 'm/s';
+
+let currentlyDragging = -1;
+let updateBodyPopupBox = -1;
+let newBodyNumber = 0;
 
 // executed before setup to load assets in more modular way
 function preload() {
@@ -84,12 +102,18 @@ function preload() {
     cameraIconImage = loadImage("./assets/cameraIcon.png");
     pauseIconImage = loadImage("./assets/pauseIcon.png");
     playIconImage = loadImage("./assets/playIcon.png");
+
+    music = loadSound('./assets/Victoriana Loop.mp3');
+    switchSound = loadSound('./assets/switch.wav');
+    switchSound.volume = 1;
 }
 
 // first function containing logic, is run immediately after preload by q5 library
 function setup() {
+
     // q5 function and inbuilt variables
     createCanvas(windowWidth, windowHeight, WEBGL);
+
     // draw rectangle objects with their co-ordinates at their center
     rectMode(CENTER);
     frameRate(60);
@@ -111,67 +135,146 @@ function setup() {
         // initialising main menu buttons
         let mainMenuButtons = [];
         //new simulation button
-        mainMenuButtons.push(new Button(mainMenuButtonX, (windowHeight / 2) - mainMenuButtonOffset, mainButtonWidth, mainButtonHeight, 'new simulation', 1));
+        mainMenuButtons.push(new Button(mainMenuButtonX, (windowHeight / 2) - mainMenuButtonOffset, mainButtonWidth, mainButtonHeight, 'simulation', states.indexOf('main simulation')));
         // learn button
-        mainMenuButtons.push(new Button(mainMenuButtonX, (windowHeight / 2) + mainMenuButtonOffset, mainButtonWidth, mainButtonHeight, 'learn', 2));
+        mainMenuButtons.push(new Button(mainMenuButtonX, (windowHeight / 2) + mainMenuButtonOffset, mainButtonWidth, mainButtonHeight, 'learn', states.indexOf('learn menu')));
+        // settings button
+        mainMenuButtons.push(new Button(mainMenuButtonX, (windowHeight / 2) + (3 * mainMenuButtonOffset), mainButtonWidth, mainButtonHeight, 'settings', states.indexOf('settings menu')));
+
 
         // initialising learn menu buttons
         let learnMenuButtons = [];
         // simulation tutorial button
-        learnMenuButtons.push(new Button(mainMenuButtonX, (windowHeight / 2) - mainMenuButtonOffset, mainButtonWidth, mainButtonHeight, 'simulation info', 8));
+        learnMenuButtons.push(new Button(mainMenuButtonX, (windowHeight / 2) - 3 * mainMenuButtonOffset, mainButtonWidth, mainButtonHeight, 'simulation tutorial', states.indexOf('simulation tutorial menu')));
         // physics info button
-        learnMenuButtons.push(new Button(mainMenuButtonX, (windowHeight / 2) + mainMenuButtonOffset, mainButtonWidth, mainButtonHeight, 'physics information', 5));
+        learnMenuButtons.push(new Button(mainMenuButtonX, (windowHeight / 2) - mainMenuButtonOffset, mainButtonWidth, mainButtonHeight, 'physics information menu', states.indexOf('physics information menu')));
+        // to be added button
+        learnMenuButtons.push(new Button(mainMenuButtonX, (windowHeight / 2) + mainMenuButtonOffset, mainButtonWidth, mainButtonHeight, '...', -1));
         // main menu button
-        learnMenuButtons.push(new Button(mainMenuButtonX, (windowHeight / 2) + 3 * mainMenuButtonOffset, mainButtonWidth, mainButtonHeight, 'main menu', 0));
+        learnMenuButtons.push(new Button(mainMenuButtonX, (windowHeight / 2) + 3 * mainMenuButtonOffset, mainButtonWidth, mainButtonHeight, 'main menu', states.indexOf('main menu')));
 
         // initialising pause menu buttons
         let pauseMenuButtons = [];
         // unpause button
-        pauseMenuButtons.push(new Button(windowWidth / 2, (windowHeight / 2) - mainMenuButtonOffset, mainButtonWidth, mainButtonHeight, 'continue simulation', 1));
+        pauseMenuButtons.push(new Button(windowWidth / 2, (windowHeight / 2) - 3 * mainMenuButtonOffset, mainButtonWidth, mainButtonHeight, 'continue simulation', states.indexOf('main simulation')));
         // learn button
-        pauseMenuButtons.push(new Button(windowWidth / 2, (windowHeight / 2) + mainMenuButtonOffset, mainButtonWidth, mainButtonHeight, 'learn', 2));
+        pauseMenuButtons.push(new Button(windowWidth / 2, (windowHeight / 2) - mainMenuButtonOffset, mainButtonWidth, mainButtonHeight, 'learn', states.indexOf('learn menu')));
+        // settings menu button
+        pauseMenuButtons.push(new Button(windowWidth / 2, (windowHeight / 2) + mainMenuButtonOffset, mainButtonWidth, mainButtonHeight, 'settings', states.indexOf('settings menu')));
         // main menu button
-        pauseMenuButtons.push(new Button(windowWidth / 2, (windowHeight / 2) + 3 * mainMenuButtonOffset, mainButtonWidth, mainButtonHeight, 'main menu', 0));
+        pauseMenuButtons.push(new Button(windowWidth / 2, (windowHeight / 2) + 3 * mainMenuButtonOffset, mainButtonWidth, mainButtonHeight, 'main menu', states.indexOf('main menu')));
 
         // simulation tutorial menu buttons
         let simTutorialMenuButtons = [];
-        simTutorialMenuButtons.push(new Button(topRightMenuButtonX, topMenuButtonY, mainButtonWidth, mainButtonHeight, 'simultion info', 8));
-        simTutorialMenuButtons.push(new Button(topRightMenuButtonX, topMenuButtonY + 2 * mainMenuButtonOffset, mainButtonWidth, mainButtonHeight, 'main menu', 0));
+        simTutorialMenuButtons.push(new Button(topRightMenuButtonX, topMenuButtonY, mainButtonWidth, mainButtonHeight, 'learn', states.indexOf('learn menu')));
+        simTutorialMenuButtons.push(new Button(topRightMenuButtonX, topMenuButtonY + 2 * mainMenuButtonOffset, mainButtonWidth, mainButtonHeight, 'main menu', states.indexOf('main menu')));
 
         // physics info menu buttons
         let physicsInfoMenuButtons = [];
-        physicsInfoMenuButtons.push(new Button(topRightMenuButtonX, topMenuButtonY, mainButtonWidth, mainButtonHeight, 'learn', 2));
-        physicsInfoMenuButtons.push(new Button(topRightMenuButtonX, topMenuButtonY + 2 * mainMenuButtonOffset, mainButtonWidth, mainButtonHeight, 'main menu', 0));
-        physicsInfoMenuButtons.push(new Button(largeLeftButtonX, topMenuButtonY, largeButtonWidth, mainButtonHeight, 'newtonian mechanics', 6));
-        physicsInfoMenuButtons.push(new Button(largeLeftButtonX, topMenuButtonY + 2 * mainMenuButtonOffset, largeButtonWidth, mainButtonHeight, 'SI units', 7));
+        physicsInfoMenuButtons.push(new Button(topRightMenuButtonX, topMenuButtonY, mainButtonWidth, mainButtonHeight, 'learn', states.indexOf('learn menu')));
+        physicsInfoMenuButtons.push(new Button(topRightMenuButtonX, topMenuButtonY + 2 * mainMenuButtonOffset, mainButtonWidth, mainButtonHeight, 'main menu', states.indexOf('main menu')));
+        physicsInfoMenuButtons.push(new Button(largeLeftButtonX, topMenuButtonY, largeButtonWidth, mainButtonHeight, 'newtonian mechanics', states.indexOf('newtonian mechanics menu')));
+        physicsInfoMenuButtons.push(new Button(largeLeftButtonX, topMenuButtonY + 2 * mainMenuButtonOffset, largeButtonWidth, mainButtonHeight, 'SI units', states.indexOf('si units menu')));
+        physicsInfoMenuButtons.push(new Button(largeLeftButtonX, topMenuButtonY + 4 * mainMenuButtonOffset, largeButtonWidth, mainButtonHeight, '...', -1));
+
 
         // newtonian mechanics info menu buttons
         let newtonianMechanicsMenuButtons = [];
-        newtonianMechanicsMenuButtons.push(new Button(topRightMenuButtonX, topMenuButtonY, mainButtonWidth, mainButtonHeight, 'physics info', 5));
-        newtonianMechanicsMenuButtons.push(new Button(topRightMenuButtonX, topMenuButtonY + 2 * mainMenuButtonOffset, mainButtonWidth, mainButtonHeight, 'learn', 2));
-        newtonianMechanicsMenuButtons.push(new Button(topRightMenuButtonX, topMenuButtonY + 4 * mainMenuButtonOffset, mainButtonWidth, mainButtonHeight, 'main menu', 0));
+        newtonianMechanicsMenuButtons.push(new Button(topRightMenuButtonX, topMenuButtonY, mainButtonWidth, mainButtonHeight, 'physics info', states.indexOf('physics information menu')));
+        newtonianMechanicsMenuButtons.push(new Button(topRightMenuButtonX, topMenuButtonY + 2 * mainMenuButtonOffset, mainButtonWidth, mainButtonHeight, 'learn', states.indexOf('learn menu')));
+        newtonianMechanicsMenuButtons.push(new Button(topRightMenuButtonX, topMenuButtonY + 4 * mainMenuButtonOffset, mainButtonWidth, mainButtonHeight, 'main menu', states.indexOf('main menu')));
 
         // SI units info menu buttons
         let SIUnitsMenuButtons = [];
-        SIUnitsMenuButtons.push(new Button(topRightMenuButtonX, topMenuButtonY, mainButtonWidth, mainButtonHeight, 'physics info', 5));
-        SIUnitsMenuButtons.push(new Button(topRightMenuButtonX, topMenuButtonY + 2 * mainMenuButtonOffset, mainButtonWidth, mainButtonHeight, 'learn', 2));
-        SIUnitsMenuButtons.push(new Button(topRightMenuButtonX, topMenuButtonY + 4 * mainMenuButtonOffset, mainButtonWidth, mainButtonHeight, 'main menu', 0));
+        SIUnitsMenuButtons.push(new Button(topRightMenuButtonX, topMenuButtonY, mainButtonWidth, mainButtonHeight, 'physics info', states.indexOf('physics information menu')));
+        SIUnitsMenuButtons.push(new Button(topRightMenuButtonX, topMenuButtonY + 2 * mainMenuButtonOffset, mainButtonWidth, mainButtonHeight, 'learn', states.indexOf('learn menu')));
+        SIUnitsMenuButtons.push(new Button(topRightMenuButtonX, topMenuButtonY + 4 * mainMenuButtonOffset, mainButtonWidth, mainButtonHeight, 'main menu', states.indexOf('main menu')));
 
-        // simulation info buttons
-        let simulationInfoButtons = [];
-        simulationInfoButtons.push(new Button(windowWidth / 2, (windowHeight / 2) - mainMenuButtonOffset, mainButtonWidth, mainButtonHeight, 'simulation tutorial', 4));
-        simulationInfoButtons.push(new Button(windowWidth / 2, (windowHeight / 2) + mainMenuButtonOffset, mainButtonWidth, mainButtonHeight, 'learn', 2));
-        simulationInfoButtons.push(new Button(windowWidth / 2, (windowHeight / 2) + 3 * mainMenuButtonOffset, mainButtonWidth, mainButtonHeight, 'main menu', 0));
+        // setttings menu buttons
+        let settingsMenuButtons = [];
+        // main simulation button
+        let mainSimulationButton = new Button(topRightMenuButtonX, topMenuButtonY, mainButtonWidth, mainButtonHeight, 'simulation', states.indexOf('main simulation'));
+        mainSimulationButton.onPress = updatePopupBoxUnits;
+        settingsMenuButtons.push(mainSimulationButton);
+
+        settingsMenuButtons.push(new Button(topRightMenuButtonX, topMenuButtonY + 2 * mainMenuButtonOffset, mainButtonWidth, mainButtonHeight, 'main menu', states.indexOf('main menu')));
+        toggleMusicButton = new Button(largeLeftButtonX, topMenuButtonY, largeButtonWidth, mainButtonHeight, 'toggle sound', -1);
+        // update button's onPress function to toggle the volume of the background music between 0 and 1 ( on and off )
+        toggleMusicButton.onPress = () => {
+            music.volume = music.volume === 1 ? 0 : 1;
+            switchSound.volume = switchSound.volume === 1 ? 0 : 1;
+        }
+        settingsMenuButtons.push(toggleMusicButton);
+        
+        changeDisplayMassUnitButton = new Button(largeLeftButtonX, topMenuButtonY + 2 * mainMenuButtonOffset, largeButtonWidth, mainButtonHeight, 'change mass unit : ' + displayMassUnit, -1);
+        changeDisplayMassUnitButton.onPress = () => {
+            switch (displayMassUnit) {
+                case 'kg':
+                    displayMassUnit = 'earths';
+                    break;
+                case 'earths':
+                    displayMassUnit = 'suns';
+                    break;
+                case 'suns':
+                    displayMassUnit = 'kg';
+                    break;
+                default:
+                    console.log('invalid displayMassUnit');
+            }
+            changeDisplayMassUnitButton.setText('change mass unit : ' + displayMassUnit);
+        }
+        settingsMenuButtons.push(changeDisplayMassUnitButton);
+
+        changeDisplayDistanceUnitButton = new Button(largeLeftButtonX, topMenuButtonY + 4 * mainMenuButtonOffset, largeButtonWidth, mainButtonHeight, 'change distance unit : ' + displayDistanceUnit, -1);
+        changeDisplayDistanceUnitButton.onPress = () => {
+            switch (displayDistanceUnit) {
+                case 'm':
+                    displayDistanceUnit = 'earth diameters';
+                    break;
+                case 'earth diameters':
+                    displayDistanceUnit = 'sun diameters';
+                    break;
+                case 'sun diameters':
+                    displayDistanceUnit = 'm';
+                    break;
+                default:
+                    console.log('invalid displayDistanceUnit');
+            }
+            changeDisplayDistanceUnitButton.setText('change distance unit : ' + displayDistanceUnit);
+        }
+        settingsMenuButtons.push(changeDisplayDistanceUnitButton);
+
+        changeDisplaySpeedUnitButton = new Button(largeLeftButtonX, topMenuButtonY + 6 * mainMenuButtonOffset, largeButtonWidth, mainButtonHeight, 'change speed unit : ' + displaySpeedUnit, -1);
+        changeDisplaySpeedUnitButton.onPress = () => {
+            switch (displaySpeedUnit) {
+                case 'm/s':
+                    displaySpeedUnit = 'mph';
+                    break;
+                case 'mph':
+                    displaySpeedUnit = 'c';
+                    break;
+                case 'c':
+                    displaySpeedUnit = 'm/s';
+                    break;
+                default:
+                    console.log('invalid displaySpeedUnit');
+            }
+            changeDisplaySpeedUnitButton.setText('change speed unit : ' + displaySpeedUnit);
+        }
+        settingsMenuButtons.push(changeDisplaySpeedUnitButton);
+
+        let mainMenuButton = new Button(largeLeftButtonX, topMenuButtonY + 8 * mainMenuButtonOffset, largeButtonWidth, mainButtonHeight, '...', -1);
+        mainMenuButton.onPress = updatePopupBoxUnits;
 
         // appending state button arrays to buttons array
-        buttons[0] = mainMenuButtons;
-        buttons[2] = learnMenuButtons;
-        buttons[3] = pauseMenuButtons;
-        buttons[4] = simTutorialMenuButtons;
-        buttons[5] = physicsInfoMenuButtons;
-        buttons[6] = newtonianMechanicsMenuButtons;
-        buttons[7] = SIUnitsMenuButtons;
-        buttons[8] = simulationInfoButtons;
+        buttons[states.indexOf('main menu')] = mainMenuButtons;
+        buttons[states.indexOf('learn menu')] = learnMenuButtons;
+        buttons[states.indexOf('pause menu')] = pauseMenuButtons;
+        buttons[states.indexOf('simulation tutorial menu')] = simTutorialMenuButtons;
+        buttons[states.indexOf('physics information menu')] = physicsInfoMenuButtons;
+        buttons[states.indexOf('newtonian mechanics menu')] = newtonianMechanicsMenuButtons;
+        buttons[states.indexOf('si units menu')] = SIUnitsMenuButtons;
+        buttons[states.indexOf('settings menu')] = settingsMenuButtons;
     }
     
     function initialiseMenuTextBoxes() {
@@ -210,39 +313,42 @@ function setup() {
         let SIUnitsTextBoxes = [];
         SIUnitsTextBoxes.push(new TextBox(learnMenuTextBoxX, learnMenuTextBoxY, learnMenuTextBoxWidth, learnMenuTextBoxHeight, SIUnitsString));
 
-        textBoxes[0] = mainMenuTextBoxes;
-        textBoxes[1] = mainSimulationTextBoxes;
-        textBoxes[3] = mainSimulationTextBoxes;
-        textBoxes[4] = simulationTutorialTextBoxes;
-        textBoxes[6] = newtonianMechanicsTextboxes;
-        textBoxes[7] = SIUnitsTextBoxes;
+        textBoxes[states.indexOf('main menu')] = mainMenuTextBoxes;
+        textBoxes[states.indexOf('main simulation')] = mainSimulationTextBoxes;
+        textBoxes[states.indexOf('pause menu')] = mainSimulationTextBoxes;
+        textBoxes[states.indexOf('simulation tutorial menu')] = simulationTutorialTextBoxes;
+        textBoxes[states.indexOf('newtonian mechanics menu')] = newtonianMechanicsTextboxes;
+        textBoxes[states.indexOf('si units menu')] = SIUnitsTextBoxes;
     }
 
     function initialiseMainSimulation() {
         currentSimulation = new Simulation();
 
-
-        currentSimulation.addBody(new Body('sun', [0, 0], [0,0], 1.988e30, 1.39e9, sunImage, [255,234,0]));
-        currentSimulation.addBody(new Body('mercury', [5.791e10, 0], [0,47.4e3], 3.3011e23, 4.88e6, mercuryImage, [220,220,220]));
-        currentSimulation.addBody(new Body('venus', [1.0821e11, 0], [0,35e3], 4.8675e24, 1.21036e7, venusImage, [200, 20, 20]));
-        currentSimulation.addBody(new Body('earth', [1.496e11,0], [0,29.78e3], 5.972e24, 12756274, earthImage, [0,0,255]));
-        currentSimulation.addBody(new Body('moon', [1.496e11 + 384400000, 0], [0,29.78e3+1.022e3], 7.35e22, 3474e3, moonImage, [220,220,220]));
-        currentSimulation.addBody(new Body('mars', [2.2794e11,0], [0,24e3], 6.4191e23, 7.9238e6, marsImage, [255,0,0]));
-        currentSimulation.addBody(new Body('jupiter', [7.7841e11, 0], [0,13.1e3], 1.8982e27, 1.42984e8, jupiterImage, [100, 50, 70]));
-        currentSimulation.addBody(new Body('saturn', [1.43e12, 0], [0, 9.69e3], 5.683e26, 1.1647e8, saturnImage, [255,255,255]));
-        currentSimulation.addBody(new Body('uranus', [2.87e12, 0], [0, 6.835e3], 8.6810e25, 5.0724e7, uranusImage, [255,255,255]));
-        currentSimulation.addBody(new Body('neptune', [4.5e12, 0], [0, 5.43e3], 1.02409e26, 4.9244e7, neptuneImage, [255,255,255]));
+        currentSimulation.addBody(new Body('earth', [0,0], [0,29.78e3], 5.972e24, 12756274, earthImage, [0,0,255]));
+        currentSimulation.addBody(new Body('moon', [384400000, 0], [0,29.78e3+1.022e3], 7.35e22, 3474e3, moonImage, [220,220,220]));
 
         
-	    //bodies.push(new Body("phobos", 1.06e16, 11e3, [2.2794e11, 9.376e6], [2.1e3, 24e3], 'grey'));
-	    //bodies.push(new Body("uranus", 8.6810e25, 5.0724e7, [2.87e12, 0], [0, 6.835e3], '#B2D6DB'));
-	    //bodies.push(new Body("neptune", 1.02409e26, 4.9244e7, [4.5e12, 0],[0, 5.43e3], '#7CB7BB'));
 
-        currentSimulation.getBodyByName('moon').setMinCanvasDiameter(0);
-        currentSimulation.getBodyByName('sun').setMinCanvasDiameter(4);
+        //currentSimulation.addBody(new Body('sun', [-149.6e9, 0], [0,0], 1.988e30, 1.39e9, sunImage, [255,234,0]));
 
-        currentSimulation.getCamera().setZoom(1 * (1/1.1) ** 11);
-        currentSimulation.getCamera().setPosition([1.496e11,0]);
+        //currentSimulation.addBody(new Body('mars', [-149.6e9 + 2.2794e11,0], [0,24e3], 6.4191e23, 7.9238e6, marsImage, [255,0,0]));
+        //currentSimulation.addBody(new Body('mercury', [-149.6e9 + 5.791e10, 0], [0,47.4e3], 3.3011e23, 4.88e6, mercuryImage, [220,220,220]));
+        //currentSimulation.addBody(new Body('venus', [-149.6e9 + 1.0821e11, 0], [0,35e3], 4.8675e24, 1.21036e7, venusImage, [200, 20, 20]));
+        //currentSimulation.addBody(new Body('jupiter', [-149.6e9 + 7.7841e11, 0], [0,13.1e3], 1.8982e27, 1.42984e8, jupiterImage, [100, 50, 70]));
+        //currentSimulation.addBody(new Body('saturn', [-149.6e9 + 1.43e12, 0], [0, 9.69e3], 5.683e26, 1.1647e8, saturnImage, [255,255,255]));
+        //currentSimulation.addBody(new Body('uranus', [-149.6e9 + 2.87e12, 0], [0, 6.835e3], 8.6810e25, 5.0724e7, uranusImage, [255,255,255]));
+        //currentSimulation.addBody(new Body('neptune', [-149.6e9 + 4.5e12, 0], [0, 5.43e3], 1.02409e26, 4.9244e7, neptuneImage, [255,255,255]));
+//
+        //
+	    ////bodies.push(new Body("phobos", 1.06e16, 11e3, [2.2794e11, 9.376e6], [2.1e3, 24e3], 'grey'));
+	    ////bodies.push(new Body("uranus", 8.6810e25, 5.0724e7, [2.87e12, 0], [0, 6.835e3], '#B2D6DB'));
+	    ////bodies.push(new Body("neptune", 1.02409e26, 4.9244e7, [4.5e12, 0],[0, 5.43e3], '#7CB7BB'));
+//
+        //currentSimulation.getBodyByName('moon').setMinCanvasDiameter(0);
+        //currentSimulation.getBodyByName('sun').setMinCanvasDiameter(4);
+//
+        //currentSimulation.getCamera().setZoom(1 * (1/1.1) ** 11);
+        //currentSimulation.getCamera().setPosition([0, 0]);
 
         //acurrentSimulation.setFocusByName('earth');
     }
@@ -255,7 +361,7 @@ function setup() {
         cameraIcon = new Icon(3 * width / 5 + iconWidth, toolbarIconHeight, iconWidth, iconHeight, cameraIconImage);
 
 
-        icons[0] = [pauseIcon, playIcon, cameraIcon];
+        icons[states.indexOf('main simulation')] = [pauseIcon, playIcon, cameraIcon];
     }
 
     // sets up menu button and text box attributes
@@ -264,10 +370,23 @@ function setup() {
     initialiseMainSimulation();
     initialiseIcons();
     setAccurateYear();
+
+    // start looping background music after 10 seconds
+    setTimeout(() => { 
+        music.volume = 1;
+        music.loop = true;
+        music.play();
+    }, 10000)
+
+    document.addEventListener('contextmenu', function (event) {
+        event.preventDefault()
+        return false
+    })
 }
 
 // called once per frame
 function update() {
+
     // execute different logic based on program state
     switch (state) {
         case 0:  // main menu
@@ -312,6 +431,10 @@ function draw() {
         case 1:  // main simulation
             drawCurrentSimBodies();
             drawCurrentSimToolbar();
+
+            updateInfoPopupBoxes();
+            drawInfoPopupBoxes();
+            drawUpdateBodyPopupBox();
             break;
         case 2:  // learn menu
             break;
@@ -338,6 +461,18 @@ function draw() {
     drawButtons();
     drawTextBoxes();
     drawCurrentState();
+
+    
+}
+
+function updatePopupBoxUnits() {
+    for (let popupBox of infoPopupBoxes) {
+        popupBox.updateUnits(displayMassUnit,displaySpeedUnit,displayDistanceUnit);
+    }
+    if (updateBodyPopupBox === -1) {
+        return;
+    }
+    updateBodyPopupBox.updateUnits(displayMassUnit,displaySpeedUnit,displayDistanceUnit);
 }
 
 // draws buttons of current state
@@ -363,6 +498,25 @@ function drawTextBoxes() {
     }
 }
 
+function updateInfoPopupBoxes() {
+    for (let popupBox of infoPopupBoxes) {
+        popupBox.updateBodyInfo();
+    }
+}
+
+function drawInfoPopupBoxes() {
+    for (let popupBox of infoPopupBoxes) {
+        popupBox.display();
+    }
+}
+
+function drawUpdateBodyPopupBox() {
+    if (updateBodyPopupBox === -1) {
+        return;
+    }
+    updateBodyPopupBox.display();
+}
+
 function drawCurrentState() {
     let newStateIndicatorContents = states[state];
     if (state === 1) { newStateIndicatorContents += " - press 'esc' to pause"; }
@@ -377,67 +531,142 @@ function buttonsClicked() {
     if (!stateButtons) {
         return;
     }
+    // checks each button, if mouse cursor is overlapping it
     for (let button of stateButtons) {
         if (button.mouseOverlapping()) {
-            state = button.getStateChange();
+            newState = button.getStateChange();
+            // if newState is -1, button is not for navigating menus, instead performs some function.
+            if (newState !== -1) {
+                state = newState;
+                
+            } 
+            button.onPress();
         }
     }
 }
 
 // can now drag things, may be useful
 function mouseDragged() {
-    return;
-    if (buttons[0][0].mouseOverlapping()) {
-        console.log('test');
+    // move popup box if mouse is dragged and initially pressed over popup box
+    if (currentlyDragging === -1) {
+        return;
+    }
 
-        let pos = buttons[0][0].getPos();
-        buttons[0][0].setPos([pos[0] + (mouseX - pmouseX), pos[1] + (mouseY - pmouseY)]);
-        //stateIndicator.setPos([100,100]);
+    let pos = currentlyDragging.getPos();
+    currentlyDragging.setPos([pos[0] + (mouseX - pmouseX), pos[1] + (mouseY - pmouseY)]);
+
+    if (currentlyDragging === updateBodyPopupBox) {
+        updateBodyPopupBox.updateLinePositions();
+    }
+}
+
+function mousePressed(event) {
+    // if mouse pressed while cursor overlaps popup box, set the currently dragging variable to overlapped popup box
+    for (let popupBox of infoPopupBoxes) {
+        if (popupBox.mouseOverlapping()) {
+            currentlyDragging = popupBox;
+        }
+    }
+    if (updateBodyPopupBox !== -1 && updateBodyPopupBox.mouseOverlapping()) {
+        currentlyDragging = updateBodyPopupBox;
     }
 }
 
 // q5 library function, run on mouse click
 function mouseReleased(event) {
+    
     buttonsClicked();
 
-    // on control click (for popup explanation boxes)
-    if (event.button === 0 && event.ctrlKey)
+    // on control click logs click event
+    if (event.ctrlKey)
         console.log(event);
 
-    switch (state) {
-        case 0:  // main menu
-            break;
-        case 1:  // main simulation
-        // comment on this change
-            //if (pauseIcon.mouseOverlapping() && currentSimulation.getTimeRate() !== 0) {
-            //    currentSimulation.setTimeRate(0);
-            //}
-            //if (playIcon.mouseOverlapping() && currentSimulation.getTimeRate() === 0) {
-            //    currentSimulation.setPrevTimeRate();
-            //}
-            if (pauseIcon.mouseOverlapping() || playIcon.mouseOverlapping()) {
-                if (currentSimulation.getTimeRate() === 0) {
-                    currentSimulation.setPrevTimeRate();
-                } else {
-                    currentSimulation.setTimeRate(0);
-                }
+
+    // maybe swap the order of this, state first then button check
+    switch (event.button) {
+        // left click
+        case 0:
+            switch (state) {
+                case 0:  // main menu
+                    break;
+                case 1:  // main simulation
+                    // pause & play simulation if clicked icons
+                    if (pauseIcon.mouseOverlapping() && currentSimulation.getTimeRate() !== 0) {
+                        currentSimulation.setTimeRate(0);
+                        break;
+                    }
+                    if (playIcon.mouseOverlapping() && currentSimulation.getTimeRate() === 0) {
+                        currentSimulation.setPrevTimeRate();
+                        break;
+                    }
+
+                    // check for click on update body popup
+                    // if clicked returns false, linked body is deleted
+                    if (updateBodyPopupBox !== -1 && updateBodyPopupBox.mouseOverlapping()) {
+                        if (!updateBodyPopupBox.clicked(mouseX, mouseY)) {
+                            currentSimulation.getBodies().splice(currentSimulation.getBodies().indexOf(updateBodyPopupBox.getLinkedBody()), 1);
+                        }
+                        break;
+                    }
+
+                    // instantiates a new info popup box if mouse is overlapping body when mouse is pressed
+                    // this goes from start to end, results in removing bottom box, reverse for beter ux
+                    let addedNewInfoPopup = false;
+                    for (let body of currentSimulation.getBodies()) {
+                        if (currentSimulation.getCamera().mouseOverlapsBody(body, [mouseX, mouseY])) {
+                            infoPopupBoxes.push(new BodyInfoPopupBox(mouseX, mouseY, 400, 250, body, currentSimulation.getCamera(), displayMassUnit, displaySpeedUnit, displayDistanceUnit));
+                            addedNewInfoPopup = true;
+                        };
+                    }
+                    if (addedNewInfoPopup) break;
+
+                    // reset when mouse released
+                    if (currentlyDragging === -1) {
+                        updateBodyPopupBox = -1;
+                    }
+
+                    currentlyDragging = -1;
+
+                break;
             }
-            break;
-        case 2:  // learn menu
-            break;
-        case 3:  // pause menu
-            break;
-        case 4:  // simulation tutorial menu
-            break;
-        case 5:  // physics info menu
-            break;
-        case 6:  // newtonian mechanics menu
-            break;
-        case 7:  // SI units menu
-            break;
-        default:
+        break;
+        // right click
+        case 2:
+            switch (state) {
+                case 0:
+                    break;
+                case 1:
+                    // remove info popup box from popup boxes array on overlapping right click
+                    for (let i = infoPopupBoxes.length - 1; i >= 0; i--) {
+                        let popupBox = infoPopupBoxes[i];
+                        if (popupBox.mouseOverlapping()) {
+                            infoPopupBoxes.splice(i, 1);
+                            return;
+                        }
+                    }
+                    // set updatebodypopup box variable to new popup box or reset if right click on body or not
+                    let overlappingBody = false;
+                    for (let body of currentSimulation.getBodies()) {
+                        if (currentSimulation.getCamera().mouseOverlapsBody(body, [mouseX,mouseY])) {
+                            updateBodyPopupBox = new UpdateBodyPopupBox(mouseX, mouseY, 400, 250, body, currentSimulation.getCamera(), displayMassUnit, displaySpeedUnit, displayDistanceUnit);
+                            overlappingBody = true;
+                            return;
+                        }
+                    }
+                    // create new body if cursor doesn't overlap body and control key is held
+                    if (!overlappingBody && event.ctrlKey) {
+                        newBodyNumber++;
+                        let newBodyName = 'body ' + newBodyNumber;
+                        currentSimulation.addBody(new Body(newBodyName, currentSimulation.getCamera().getCursorSimPosition(mouseX,mouseY), [0,0], 0, 0, 0, [random(255), random(255), random(255)]));
+                        updateBodyPopupBox = new UpdateBodyPopupBox(mouseX, mouseY, 400, 250, currentSimulation.getBodyByName(newBodyName), currentSimulation.getCamera(), displayMassUnit, displaySpeedUnit, displayDistanceUnit);
+                    }
+            }
+
             break;
     }
+
+    switchSound.stop();
+    switchSound.play();
 }
 // q5 library function, run once when any key pressed
 function keyPressed() {
@@ -447,7 +676,7 @@ function keyPressed() {
         case 1:  // main simulation
             switch (keyCode) {
                 case 27: // escape
-                    state = 3;
+                    state = states.indexOf('pause menu');
                     break;
                 case 32: // spacebar
                     if (currentSimulation.getTimeRate() !== 0) {
@@ -485,6 +714,7 @@ function keyPressed() {
             break;
     }
 }
+
 
 function drawCurrentSimBodies() {
     // display images and ellipse with the given position at the center not top left corner to reduce number of calculations
@@ -531,7 +761,7 @@ function drawToolbar() {
 
 function drawToolbarIcons() {
     imageMode(CENTER);
-    for (let icon of icons[0]) {
+    for (let icon of icons[states.indexOf('main simulation')]) {
         icon.display();
     }
     imageMode(CORNER);
@@ -565,35 +795,34 @@ function drawCurrentSimToolbar() {
 
     drawToolbar();
     drawToolbarIcons();
-    timeRateTextBox.updateContents("x"+(simTimeRate * averageFrameRate).toFixed(3));
+    timeRateTextBox.updateContents("x"+(simTimeRate * averageFrameRate).toPrecision(3));
     timeTextBox.updateContents(secondsToDisplayTime(simTime)); 
-    camZoomTextBox.updateContents("x"+cameraZoom.toFixed(6));
-    camPosTextBox.updateContents("( " + cameraPos[0].toFixed(1) + " , " + cameraPos[1].toFixed(1) + " )");
+    camZoomTextBox.updateContents("x"+cameraZoom.toPrecision(3));
+    camPosTextBox.updateContents("( " + cameraPos[0].toPrecision(3) + " , " + cameraPos[1].toPrecision(3) + " )");
 }
 
 function mainSimKeyHeldHandler() {
     
     if (keyIsDown('d') || keyIsDown(RIGHT_ARROW)) {
-        //                               for now move camera by radius of moon
-        if (keyIsDown('shift'))
+        if (!currentSimulation.getFocus())
             currentSimulation.getCamera().updateFocusOffset([3e8/70,0]);
         else
             currentSimulation.getCamera().updatePosition([3e8/70,0]);
     } 
     if (keyIsDown('a') || keyIsDown(LEFT_ARROW)) {
-        if (keyIsDown('shift'))
+        if (!currentSimulation.getFocus())
             currentSimulation.getCamera().updateFocusOffset([-3e8/70,0]);
         else
             currentSimulation.getCamera().updatePosition([-3e8/70,0]);
     }
     if (keyIsDown('w') || keyIsDown(UP_ARROW)) {
-        if (keyIsDown('shift'))
+        if (!currentSimulation.getFocus())
             currentSimulation.getCamera().updateFocusOffset([0,-3e8/70]);
         else
             currentSimulation.getCamera().updatePosition([0,-3e8/70]);
     }
     if (keyIsDown('s') || keyIsDown(DOWN_ARROW)) {
-        if (keyIsDown('shift'))
+        if (!currentSimulation.getFocus())
             currentSimulation.getCamera().updateFocusOffset([0,3e8/70]);
         else
             currentSimulation.getCamera().updatePosition([0,3e8/70]);
@@ -659,13 +888,4 @@ function setAccurateYear() {
     let seconds = 0;
     seconds += secondsPerYear * year();
     currentSimulation.setTime(seconds);
-}
-
-function getStateIndexByName(name) {
-    for (let i = 0; i < states.length; i++) {
-        if (states[i] === name) {
-            return i;
-        }
-    }
-    return -1;
 }

@@ -46,5 +46,14 @@ class Button extends Box {
     getContents() {
         return this.#txt;
     }
+
+    setText(inTxt) {
+        this.#txt = inTxt;
+    }
+
+    // to be overwritten in non-state-changing buttons
+    onPress() {
+        return;
+    }
 }
 
