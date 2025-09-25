@@ -113,6 +113,14 @@ function preload() {
 // first function containing logic, is run immediately after preload by q5 library
 function setup() {
 
+    let username = prompt('enter username');
+    let password = prompt('enter password');
+    let data = {
+        username: username,
+        passwordHash: password,
+    }
+    socket.emit('insert new user', data);
+
     // q5 function and inbuilt variables
     createCanvas(windowWidth, windowHeight, WEBGL);
 
