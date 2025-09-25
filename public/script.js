@@ -1,3 +1,5 @@
+var socket = io.connect();
+
 // initialising global variables
 const states = ['main menu', 'main simulation', 'learn menu', 'pause menu', 'simulation tutorial menu', 'physics information menu', 'newtonian mechanics menu', 'si units menu', 'settings menu'];
 
