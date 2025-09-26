@@ -113,13 +113,19 @@ function preload() {
 // first function containing logic, is run immediately after preload by q5 library
 function setup() {
 
-    let username = prompt('enter username');
-    let password = prompt('enter password');
-    let data = {
-        username: username,
-        passwordHash: password,
-    }
-    socket.emit('insert new user', data);
+    // server & db setup
+    socket.on('dbUsernames' => ...)
+
+    //let username = prompt('enter username');
+    //let password = prompt('enter password');
+    //let data = {
+    //    username: username,
+    //    passwordHash: password,
+    //}
+    //if (username) {
+    //    socket.emit('insert new user', data);
+    //}
+    login();
 
     // q5 function and inbuilt variables
     createCanvas(windowWidth, windowHeight, WEBGL);
@@ -898,4 +904,20 @@ function setAccurateYear() {
     let seconds = 0;
     seconds += secondsPerYear * year();
     currentSimulation.setTime(seconds);
+}
+
+function login() {
+    let users = [];
+    
+    let username = prompt('enter username');
+
+    let existingUsername = false;
+    for (user of users) {
+        if (user.Username === username) {
+            console.log('existing username');
+        }
+    }
+    if (!existingUsername) {
+        console.log('new user');
+    }
 }
