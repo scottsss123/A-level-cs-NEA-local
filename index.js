@@ -6,8 +6,6 @@ const { emit } = require('process');
 
 const db = new sqlite3.Database('spaceSimulationDB.db');
 
-let b = 1;
-
 // send connected users the public folder containing script.js
 var app = express();
 app.use(express.static('public'));
@@ -26,9 +24,10 @@ function connected(socket) {
 
     // enable client to call insertNewUser() on server
     socket.on('insertNewUser', (data) => { insertNewUser(data) });
+    // log usernames and/or password hashes to serverside terminal
     socket.on('logUsernames', () => { logUsernames() });
     socket.on('logPasswordHashes', () => { logPasswordHashes() });
-    emitUsers();
+    socket.on('logUsers', () => {logUsers()});
 }
 
 // log db usernames to serverside console
@@ -59,15 +58,15 @@ function logPasswordHashes() {
     })
 }
 
-function getUsers() {
+function logUsers() {
     let sql = "SELECT * FROM Users;";
-    console.log("sql:", sql);
+    console.log('sql:', sql);
 
     db.all(sql, (err, rows) => {
         if (err) {
             console.log(err);
         } else {
-            return rows;
+            console.log(rows);
         }
     })
 }
@@ -75,8 +74,21 @@ function getUsers() {
 // method to insert new user into spaceSimulationDB
 // data = { username: string, passwordHash: string }
 function insertNewUser(data) {
+    let username = data.username;
+    let passwordHash = data.passwordHash;
 
-    let sql = "INSERT INTO Users (Username, PasswordHash) VALUES ('"+data.username+"','"+data.passwordHash+"');";
+    let usernames = [];
+    let sql = "SELECT UserID,Username,PasswordHash  FROM Users;";
+    db.all(sql, (err, rows) => {
+        if (err) {  
+            console.log(err)
+        } else {
+            for 
+        }
+    })
+
+
+    sql = "INSERT INTO Users (Username, PasswordHash) VALUES ('"+data.username+"','"+data.passwordHash+"');";
     // log sql to be executed
     console.log('sql:', sql);
 
@@ -84,11 +96,7 @@ function insertNewUser(data) {
     db.all(sql, (err) => {
         if (err) {
             console.log(err);
+            io.emit('loginError', err);
         } 
     })
-}
-
-function emitUsers() {
-    let users = getUsers();
-    socket.emit('updateUsers', users);
 }
