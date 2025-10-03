@@ -85,6 +85,12 @@ let currentlyDragging = -1;
 let updateBodyPopupBox = -1;
 let newBodyNumber = 0;
 
+let dbManager = new DBManager(); ////
+
+function updateUsers(users) {
+    dbManager.updateUsers(users);
+}
+
 // executed before setup to load assets in more modular way
 function preload() {
     loadFont("./assets/monoMMM_5.ttf");
@@ -115,16 +121,11 @@ function setup() {
 
     testUsername = prompt('enter test username');
     console.log(isUniqueUsername(testUsername));
-    //testPassword = prompt('enter test password');
-
-    //let data = {
-    //    username: testUsername,
-    //    passwordHash: testPassword,
-    //};
-
-    //socket.emit('insertNewUser', data);
+    
     socket.emit('logUsernames');
     socket.emit('logPasswordHashes');
+
+    socket.on('updateUsers', (data) => { updateUsers(data) });
 
     // q5 function and inbuilt variables
     createCanvas(windowWidth, windowHeight, WEBGL);
@@ -481,7 +482,7 @@ function draw() {
 }
 
 function isUniqueUsername(inUsername) {
-    /////
+    
 }
 
 function updatePopupBoxUnits() {

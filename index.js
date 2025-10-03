@@ -6,6 +6,8 @@ const { emit } = require('process');
 
 const db = new sqlite3.Database('spaceSimulationDB.db');
 
+let b = 1;
+
 // send connected users the public folder containing script.js
 var app = express();
 app.use(express.static('public'));
@@ -26,8 +28,10 @@ function connected(socket) {
     socket.on('insertNewUser', (data) => { insertNewUser(data) });
     socket.on('logUsernames', () => { logUsernames() });
     socket.on('logPasswordHashes', () => { logPasswordHashes() });
+    emitUsers();
 }
 
+// log db usernames to serverside console
 function logUsernames() {
     let sql = "SELECT Username FROM Users;";
     console.log("sql:", sql);
@@ -41,6 +45,7 @@ function logUsernames() {
     })
 }
 
+// log db passwordhashes to serverside console
 function logPasswordHashes() {
     let sql = "SELECT PasswordHash FROM Users;";
     console.log('sql:', sql);
@@ -50,6 +55,19 @@ function logPasswordHashes() {
             console.log(err);
         } else {
             console.log(rows);
+        }
+    })
+}
+
+function getUsers() {
+    let sql = "SELECT * FROM Users;";
+    console.log("sql:", sql);
+
+    db.all(sql, (err, rows) => {
+        if (err) {
+            console.log(err);
+        } else {
+            return rows;
         }
     })
 }
@@ -68,4 +86,9 @@ function insertNewUser(data) {
             console.log(err);
         } 
     })
+}
+
+function emitUsers() {
+    let users = getUsers();
+    socket.emit('updateUsers', users);
 }
