@@ -73,7 +73,8 @@ function setup() {
     // log current users
     //socket.emit('logUsernames');
     //socket.emit('logPasswordHashes');
-    socket.emit('logUsers');
+    //socket.emit('logUsers');
+    socket.emit('getUsers');
     login();
 
     // q5 function and inbuilt variables
@@ -431,14 +432,30 @@ function draw() {
     
 }
 
+// activated on 'log in' button in main menu
 function login() {
+    // user select to login to existing user , sign up to create new user or otherwise continue without logging in 'guest user'
     let loginType = prompt('login : l\nsign up : s\nguest : g');
     if (loginType !== 'l' && loginType !== 's') {
-        loginType = 'g';///
+        loginType = 'g';
+        console.log('continue as guest user');
+        return;
     }
-    let inPasswordHash = inPassword;
-    let data = { username: inUsername, passwordHash: inPasswordHash};
-    socket.emit('insertNewUser', data); // different depending on loginType, make login() only on button press in main menu not on startup
+
+    let inUsername = prompt("Enter username: ");
+    let inPassword = prompt("Enter password: ");
+
+    // signup
+    if (loginType === 's') {
+        let inPasswordHash = inPassword;
+        let data = { username: inUsername, passwordHash: inPasswordHash };
+        socket.emit('signupUser', data); 
+    } else if (loginType === 'l') {
+        let inPasswordHash = inPassword;
+        let data = { username: inUsername, passwordHash: inPasswordHash };
+        socket.emit('loginUser', data);
+    }
+    
 }
 
 function loginError(err) {

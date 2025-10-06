@@ -23,7 +23,8 @@ function connected(socket) {
     console.log(socket.id + " has connected");
 
     // enable client to call insertNewUser() on server
-    socket.on('insertNewUser', (data) => { insertNewUser(data) });
+    socket.on('signupUser', (data) => { signupUser(data) });
+    socket.on('loginUser', (data) => { loginUser(data) });
     // log usernames and/or password hashes to serverside terminal
     socket.on('logUsernames', () => { logUsernames() });
     socket.on('logPasswordHashes', () => { logPasswordHashes() });
@@ -71,22 +72,25 @@ function logUsers() {
     })
 }
 
-// method to insert new user into spaceSimulationDB
-// data = { username: string, passwordHash: string }
-function insertNewUser(data) {
-    let username = data.username;
-    let passwordHash = data.passwordHash;
+function getUsers() {
+    let sql = "SELECT * FROM Users;";
+    console.log('sql:', sql);
 
-    let usernames = [];
-    let sql = "SELECT UserID,Username,PasswordHash  FROM Users;";
     db.all(sql, (err, rows) => {
-        if (err) {  
-            console.log(err)
+        if (err) {
+            console.log(err);
         } else {
-            for 
+            console.log(rows);
+            return rows;
         }
     })
+}
 
+// method to insert new user into spaceSimulationDB
+// data = { username: string, passwordHash: string }
+function signupUser(data) {
+    let username = data.username;
+    let passwordHash = data.passwordHash;
 
     sql = "INSERT INTO Users (Username, PasswordHash) VALUES ('"+data.username+"','"+data.passwordHash+"');";
     // log sql to be executed
@@ -96,7 +100,18 @@ function insertNewUser(data) {
     db.all(sql, (err) => {
         if (err) {
             console.log(err);
-            io.emit('loginError', err);
+            io.emit('signupUser err:\n', err);
         } 
     })
+}
+
+function loginUser(data) {
+    let username = data.username;
+    let passwordHash = data.passwordHash;
+
+    let users = getUsers();
+    let usernameExists = false;
+    for (let i = 0; i < users.length; i++) {
+        console.log(users[i]);
+    }
 }
