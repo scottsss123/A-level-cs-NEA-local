@@ -74,15 +74,16 @@ function logUsers() {
 
 function getUsers() {
     let sql = "SELECT * FROM Users;";
-    console.log('sql:', sql);
+    let users;
 
-    db.all(sql, (err, rows) => {
-        if (err) {
-            console.log(err);
-        } else {
-            console.log(rows);
-            return rows;
-        }
+    return new Promise((resolve) => {
+        db.all(sql, (err,rows) => {
+            if (err) {
+                console.log(err);
+            } else {
+                resolve(rows);
+            }
+        })
     })
 }
 
@@ -105,13 +106,31 @@ function signupUser(data) {
     })
 }
 
-function loginUser(data) {
+async function loginUser(data) {
     let username = data.username;
     let passwordHash = data.passwordHash;
 
-    let users = getUsers();
+    let users = await getUsers();
+    
     let usernameExists = false;
+    let userPasswordHash = "";
     for (let i = 0; i < users.length; i++) {
         console.log(users[i]);
+        if (users[i].Username === username) {
+            usernameExists = true;
+            userPasswordHash = users[i].PasswordHash;
+        }
     }
+
+    if (!usernameExists) {
+        io.emit("alert", "Username does not exist, try signing up to create new user");
+        return;
+    } 
+
+    if (passwordHash !== userPasswordHash) {
+        io.emit("alert", "Password does not match user's password, try again");
+        return;
+    }
+
+    
 }
