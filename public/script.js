@@ -108,10 +108,10 @@ function setup() {
         // settings button
         mainMenuButtons.push(new Button(mainMenuButtonX, (windowHeight / 2) + (3 * mainMenuButtonOffset), mainButtonWidth, mainButtonHeight, 'settings', states.indexOf('settings menu')));
         // login button
-        let loginButton = new Button(mainMenuButtonX, (windowHeight / 2) + (5 * mainMenuButtonOffset), mainButtonWidth, mainButtonHeight, 'Log in', -1);
-        loginButton.onPress = () => {
-            login();
-        };
+        //let loginButton = new Button(mainMenuButtonX, (windowHeight / 2) + (5 * mainMenuButtonOffset), mainButtonWidth, mainButtonHeight, 'Log in', -1);
+        //loginButton.onPress = () => {
+        //    login();
+        //};///////////////////////////////////////////////////////////////////
         mainMenuButtons.push(loginButton);
 
         // initialising learn menu buttons
