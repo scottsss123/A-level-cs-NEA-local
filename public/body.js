@@ -17,6 +17,8 @@ class Body {
         this.#image = inImage;
         this.#colour = inColour;
         this.#minCanvasDiameter = 3;
+
+        this.notPrivateTestAttribute = 5;
     }
 
     getName() {
@@ -77,5 +79,18 @@ class Body {
     addVel(inAcceleration, inTimeRate) {
         this.#vel[0] += inTimeRate * inAcceleration[0];
         this.#vel[1] += inTimeRate * inAcceleration[1];
+    }
+
+    getBodyData() {
+        return {
+            pos: this.#pos,
+            vel: this.#vel,
+            mass: this.#mass,
+            diameter: this.#diameter,
+            image: this.#image,
+            colour: this.#colour,
+            name: this.#name,
+            minCanvasDiameter: this.#minCanvasDiameter
+        }
     }
 }

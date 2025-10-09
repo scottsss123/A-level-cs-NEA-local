@@ -75,8 +75,8 @@ function setup() {
     //socket.emit('logUsernames');
     //socket.emit('logPasswordHashes');
     //socket.emit('logUsers');
-    socket.emit('getUsers');
-    login();
+    //socket.emit('getUsers');
+    //login();
 
     // q5 function and inbuilt variables
     createCanvas(windowWidth, windowHeight, WEBGL);
@@ -107,7 +107,12 @@ function setup() {
         mainMenuButtons.push(new Button(mainMenuButtonX, (windowHeight / 2) + mainMenuButtonOffset, mainButtonWidth, mainButtonHeight, 'learn', states.indexOf('learn menu')));
         // settings button
         mainMenuButtons.push(new Button(mainMenuButtonX, (windowHeight / 2) + (3 * mainMenuButtonOffset), mainButtonWidth, mainButtonHeight, 'settings', states.indexOf('settings menu')));
-
+        // login button
+        let loginButton = new Button(mainMenuButtonX, (windowHeight / 2) + (5 * mainMenuButtonOffset), mainButtonWidth, mainButtonHeight, 'Log in', -1);
+        loginButton.onPress = () => {
+            login();
+        };
+        mainMenuButtons.push(loginButton);
 
         // initialising learn menu buttons
         let learnMenuButtons = [];

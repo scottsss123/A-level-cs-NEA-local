@@ -1,11 +1,11 @@
 class Simulation {
-    #bodies
-    #camera
-    #time;
-    #timeRate;
-    #prevTimeRate;
-    #G; // gravitational constant
-    #focus;
+    #bodies // array of body objects
+    #camera // camera object
+    #time;  // float
+    #timeRate;  // float
+    #prevTimeRate; // float
+    #G; // gravitational constant float
+    #focus; // bool / string
 
     constructor() {
         this.#camera = new Camera([0,0], 1);
@@ -142,5 +142,26 @@ class Simulation {
         // implement this usefully, camera follow feature
         //this.#camera.setPosition(this.#bodies[0].getPos());
         return;
+    }
+
+    getSimulationData() {
+        let bodyArr = [];
+        let focus = false;
+        for (let i = 0; i < this.#bodies.length; i++) {
+            bodyArr.push(this.#bodies[i].getBodyData());
+        }
+        if (this.#focus) {
+            focus = this.#focus.getBodyData();
+        }
+
+        return {
+            bodies: bodyArr, 
+            camera: this.#camera.getCameraData(),
+            time: this.#time,
+            timeRate: this.#timeRate,
+            prevTimeRate: this.#prevTimeRate,
+            G: this.#G,  
+            focus: focus
+        }
     }
 }

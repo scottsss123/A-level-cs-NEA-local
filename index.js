@@ -29,6 +29,11 @@ function connected(socket) {
     socket.on('logUsernames', () => { logUsernames() });
     socket.on('logPasswordHashes', () => { logPasswordHashes() });
     socket.on('logUsers', () => {logUsers()});
+
+    socket.on('logdata', (data) => {
+        console.log(data);
+    })
+    socket.on('insertSimulation', (data) => { insertSimulation(data) });
 }
 
 // log db usernames to serverside console
@@ -87,22 +92,53 @@ function getUsers() {
     })
 }
 
+function insertSimulation(data) { // UserID, SimulationJSON, IsPublic
+    let userID = data.userID;
+    let simulationJSON = data.simulationJSON;
+    let isPublic = data.isPublic;
+
+    let sql = "INSERT INTO Simulations (UserID, Simulation, IsPublic) VALUES ('" + userID + "','"+simulationJSON+"','"+isPublic+"');";
+
+    db.all(sql, (err) => {
+        if (err) {
+            console.log(err);
+            io.emit('alert', 'error saving simulation');
+        } else {
+            io.emit('alert', 'simulation saved successfully');
+        }
+    })
+}
+
 // method to insert new user into spaceSimulationDB
 // data = { username: string, passwordHash: string }
-function signupUser(data) {
+async function signupUser(data) {
     let username = data.username;
     let passwordHash = data.passwordHash;
 
-    sql = "INSERT INTO Users (Username, PasswordHash) VALUES ('"+data.username+"','"+data.passwordHash+"');";
-    // log sql to be executed
-    console.log('sql:', sql);
+    let users = await getUsers();
+
+    let usernameExists = false;
+    for (let i = 0; i < users.length; i++) {
+        if (users[i].Username === username) {
+            usernameExists = true;
+        }
+    }
+
+    if (usernameExists) {
+        io.emit('alert', 'Username already exists, try a logging in or a different username');
+        return;
+    }
+
+    sql = "INSERT INTO Users (Username, PasswordHash) VALUES ('"+username+"','"+passwordHash+"');";
 
     // execut sql and log any sql errors
     db.all(sql, (err) => {
         if (err) {
             console.log(err);
             io.emit('signupUser err:\n', err);
-        } 
+        } else {
+            io.emit('alert', "User '" + username + "' created");
+        }
     })
 }
 
@@ -115,7 +151,7 @@ async function loginUser(data) {
     let usernameExists = false;
     let userPasswordHash = "";
     for (let i = 0; i < users.length; i++) {
-        console.log(users[i]);
+        //console.log(users[i]);
         if (users[i].Username === username) {
             usernameExists = true;
             userPasswordHash = users[i].PasswordHash;

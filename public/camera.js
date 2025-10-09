@@ -77,4 +77,13 @@ class Camera {
     resetFocusOffset() {
         this.#focusOffset = [0,0];
     }
+
+    getCameraData() {
+        return {
+           pos : this.#pos,
+           zoom : this.#zoom,
+           scaleFactor : this.#scaleFactor,
+           focusOffset : this.#focusOffset,
+        }
+    }
 }
