@@ -34,6 +34,8 @@ function connected(socket) {
         console.log(data);
     })
     socket.on('insertSimulation', (data) => { insertSimulation(data) });
+    socket.on('saveSettings', (data) => { saveSettings(data) });
+    socket.on('loadSettings', (data) => { loadSettings(data) });
 }
 
 // log db usernames to serverside console
@@ -79,7 +81,6 @@ function logUsers() {
 
 function getUsers() {
     let sql = "SELECT * FROM Users;";
-    let users;
 
     return new Promise((resolve) => {
         db.all(sql, (err,rows) => {
@@ -135,7 +136,7 @@ async function signupUser(data) {
     db.all(sql, (err) => {
         if (err) {
             console.log(err);
-            io.emit('signupUser err:\n', err);
+            io.emit('alert', 'Signup error: ' + err);
         } else {
             io.emit('alert', "User '" + username + "' created");
         }
@@ -147,6 +148,7 @@ async function loginUser(data) {
     let passwordHash = data.passwordHash;
 
     let users = await getUsers();
+    let userID;
     
     let usernameExists = false;
     let userPasswordHash = "";
@@ -154,6 +156,7 @@ async function loginUser(data) {
         //console.log(users[i]);
         if (users[i].Username === username) {
             usernameExists = true;
+            userID = users[i].UserID;
             userPasswordHash = users[i].PasswordHash;
         }
     }
@@ -168,5 +171,86 @@ async function loginUser(data) {
         return;
     }
 
-    
+    io.emit("alert", "Log in successful\nCurrent user: " + username);
+    io.emit("setUser", { userID : userID, username: username });
+}
+
+function getSettings() {
+    let sql = "SELECT * FROM Settings;";
+
+    return new Promise((resolve) => {
+        db.all(sql, (err,rows) => {
+            if (err) {
+                console.log(err);
+            } else {
+                resolve(rows);
+            }
+        })
+    })
+}
+
+async function saveSettings(data) { // data = { userID: int, volume: 0/1, lengthUnit: str, massUnit: str, speedUnit: str }
+    let userID = data.userID;
+    let volume = data.volume;
+    let lengthUnit = data.lengthUnit;
+    let massUnit = data.massUnit;
+    let speedUnit = data.speedUnit;
+
+    if (!volume) {
+        volume = 1;
+    }
+
+    if (userID <= 0) {
+        io.emit('alert', "must be logged in to save settings, visit profile menu");
+        return;
+    }
+
+    let settingsExists = false;
+
+    let settings = await getSettings();
+    for (let i = 0; i < settings.length; i++) {
+        if (settings[i].UserID === userID) {
+            settingsExists = true;
+        }
+    }
+
+    if (!settingsExists) {
+
+        let sql = "INSERT INTO Settings (UserID, Volume, LengthUnit, MassUnit, SpeedUnit) VALUES (" + userID + ", " + volume + ", '" + lengthUnit + "', '" + massUnit+"', '" + speedUnit + "');";
+        // execut sql and log any sql errors
+        db.all(sql, (err) => {
+            if (err) {
+                console.log(err);
+                io.emit('alert', 'settings save error: ' + err);
+            } else {
+                io.emit('alert', " settings saved for the first time");
+            }
+        });
+        
+        return;
+    }
+
+    let sql = "UPDATE Settings SET Volume = " + volume + ", LengthUnit = '" + lengthUnit + "', MassUnit = '" + massUnit + "', SpeedUnit = '" + speedUnit + "' WHERE UserID = " + userID + ";";
+    console.log(sql);
+    // execut sql and log any sql errors
+    db.all(sql, (err) => {
+        if (err) {
+            console.log(err);
+            io.emit('alert', 'settings save error: ' + err);
+        } else {
+            io.emit('alert', " settings saved");
+        }
+    });
+}
+
+async function loadSettings(data) { // data = {userID: int}
+    let settings = await getSettings();
+    for (let i = 0; i < settings.length; i++) {
+        if (settings[i].UserID === data.userID) {
+            io.emit('loadSettings', { volume: settings[i].Volume, lengthUnit: settings[i].LengthUnit, massUnit: settings[i].MassUnit, speedUnit: settings[i].SpeedUnit });
+            io.emit('alert', "settings loaded successfully");
+            return;
+        }
+    }
+    io.emit('alert', 'settings failed to load, try logging in');
 }

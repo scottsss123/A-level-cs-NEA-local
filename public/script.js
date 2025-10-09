@@ -1,7 +1,7 @@
 var socket = io.connect();
 
 // initialising global variables
-const states = ['main menu', 'main simulation', 'learn menu', 'pause menu', 'simulation tutorial menu', 'physics information menu', 'newtonian mechanics menu', 'si units menu', 'settings menu'];
+const states = ['main menu', 'main simulation', 'learn menu', 'pause menu', 'simulation tutorial menu', 'physics information menu', 'newtonian mechanics menu', 'si units menu', 'settings menu', 'profile'];
 
 // storing image data
 let starFieldBackgroundImage;
@@ -41,6 +41,9 @@ let currentlyDragging = -1;
 let updateBodyPopupBox = -1;
 let newBodyNumber = 0;
 
+let currentUserName = 'guest';
+let currentUserID = 0;
+
 // executed before setup to load assets in more modular way
 function preload() {
     loadFont("./assets/monoMMM_5.ttf");
@@ -71,6 +74,8 @@ function setup() {
     
     socket.on('loginError', (err) => { loginError(err) });
     socket.on('alert', (txt) => {alert(txt)});
+    socket.on('setUser', (data) => { setUser(data) });
+    socket.on('loadSettings', (settings) => { loadSettings(settings) });
     // log current users
     //socket.emit('logUsernames');
     //socket.emit('logPasswordHashes');
@@ -107,12 +112,14 @@ function setup() {
         mainMenuButtons.push(new Button(mainMenuButtonX, (windowHeight / 2) + mainMenuButtonOffset, mainButtonWidth, mainButtonHeight, 'learn', states.indexOf('learn menu')));
         // settings button
         mainMenuButtons.push(new Button(mainMenuButtonX, (windowHeight / 2) + (3 * mainMenuButtonOffset), mainButtonWidth, mainButtonHeight, 'settings', states.indexOf('settings menu')));
+        // profile button
+        mainMenuButtons.push(new Button(mainMenuButtonX, (windowHeight / 2) + (5 * mainMenuButtonOffset), mainButtonWidth, mainButtonHeight, 'Profile', states.indexOf('profile')));
         // login button
         //let loginButton = new Button(mainMenuButtonX, (windowHeight / 2) + (5 * mainMenuButtonOffset), mainButtonWidth, mainButtonHeight, 'Log in', -1);
         //loginButton.onPress = () => {
         //    login();
         //};///////////////////////////////////////////////////////////////////
-        mainMenuButtons.push(loginButton);
+        //mainMenuButtons.push(loginButton);
 
         // initialising learn menu buttons
         let learnMenuButtons = [];
@@ -125,6 +132,41 @@ function setup() {
         // main menu button
         learnMenuButtons.push(new Button(mainMenuButtonX, (windowHeight / 2) + 3 * mainMenuButtonOffset, mainButtonWidth, mainButtonHeight, 'main menu', states.indexOf('main menu')));
 
+        let profileButtons = [];
+        let logInButton = new Button(mainMenuButtonX, (windowHeight / 2) - mainMenuButtonOffset, mainButtonWidth, mainButtonHeight, 'Log In', -1);
+
+        logInButton.onPress = () => {
+            let inUsername = prompt("Log In:\nLeave blank to cancel\nEnter username: ");
+            if (inUsername.length === 0) {
+                return;
+            }
+            let inPassword = prompt("Log In:\nEnter password: ");
+            let inPasswordHash = inPassword; // no password hash yet
+            let data = { username: inUsername, passwordHash: inPasswordHash };
+            socket.emit('loginUser', data);
+        }
+
+        let signUpButton = new Button(mainMenuButtonX, (windowHeight / 2) + mainMenuButtonOffset, mainButtonWidth, mainButtonHeight, 'Sign Up', -1);
+
+        signUpButton.onPress = () => {
+            let inUsername = prompt("Sign Up:\nLeave blank to cancel\nEnter username: ");
+            if (inUsername.length === 0) {
+                return;
+            }
+            let inPassword = prompt("Sign Up:\nEnter password: ");
+            let inPasswordHash = inPassword; // no password hash yet
+            let data = { username: inUsername, passwordHash: inPasswordHash };
+            socket.emit('signupUser', data);
+        }
+
+        let logOutButton = new Button(mainMenuButtonX, (windowHeight / 2) + (3 * mainMenuButtonOffset), mainButtonWidth, mainButtonHeight, 'Log Out', -1);
+        logOutButton.onPress = () => logOut();
+        profileButtons.push(new Button(mainMenuButtonX, (windowHeight / 2) + (5 * mainMenuButtonOffset), mainButtonWidth, mainButtonHeight, 'Main Menu', states.indexOf('main menu')));
+        profileButtons.push(logInButton);
+        profileButtons.push(signUpButton);
+        profileButtons.push(logOutButton);
+
+        
         // initialising pause menu buttons
         let pauseMenuButtons = [];
         // unpause button
@@ -170,6 +212,19 @@ function setup() {
         settingsMenuButtons.push(mainSimulationButton);
 
         settingsMenuButtons.push(new Button(topRightMenuButtonX, topMenuButtonY + 2 * mainMenuButtonOffset, mainButtonWidth, mainButtonHeight, 'main menu', states.indexOf('main menu')));
+
+        let saveSettingsButton = new Button(topRightMenuButtonX, topMenuButtonY + 4 * mainMenuButtonOffset, mainButtonWidth, mainButtonHeight, 'save user settings',-1);
+        saveSettingsButton.onPress = () => {
+            socket.emit('saveSettings', { userID: currentUserID, volume:music.volume, lengthUnit:displayDistanceUnit, massUnit:displayMassUnit, speedUnit: displaySpeedUnit });
+        }
+        settingsMenuButtons.push(saveSettingsButton);
+
+        let loadSettingsButton = new Button(topRightMenuButtonX, topMenuButtonY + 6 * mainMenuButtonOffset, mainButtonWidth, mainButtonHeight, 'load user settings',-1);
+        loadSettingsButton.onPress = () => {
+            socket.emit('loadSettings', { userID: currentUserID });
+        }
+        settingsMenuButtons.push(loadSettingsButton);
+        
         toggleMusicButton = new Button(largeLeftButtonX, topMenuButtonY, largeButtonWidth, mainButtonHeight, 'toggle sound', -1);
         // update button's onPress function to toggle the volume of the background music between 0 and 1 ( on and off )
         toggleMusicButton.onPress = () => {
@@ -247,6 +302,7 @@ function setup() {
         buttons[states.indexOf('newtonian mechanics menu')] = newtonianMechanicsMenuButtons;
         buttons[states.indexOf('si units menu')] = SIUnitsMenuButtons;
         buttons[states.indexOf('settings menu')] = settingsMenuButtons;
+        buttons[states.indexOf('profile')] = profileButtons;
     }
     
     function initialiseMenuTextBoxes() {
@@ -356,6 +412,22 @@ function setup() {
     })
 }
 
+function updateUnitSettingsBoxes() {
+    buttons[states.indexOf('settings menu')][5].setText('change mass unit : ' + displayMassUnit); // not the best - magic numbers
+    buttons[states.indexOf('settings menu')][6].setText('change distance unit : ' + displayDistanceUnit);
+    buttons[states.indexOf('settings menu')][7].setText('change speed unit : ' + displaySpeedUnit);
+}
+
+function setUser(data) { //data = { userID : int, username : str}
+    currentUserID = data.userID;
+    currentUserName = data.username;
+}
+
+function logOut() {
+    currentUserName = "guest";
+    currentUserID = 0;
+}
+
 // called once per frame
 function update() {
 
@@ -437,34 +509,14 @@ function draw() {
     
 }
 
-// activated on 'log in' button in main menu
-function login() {
-    // user select to login to existing user , sign up to create new user or otherwise continue without logging in 'guest user'
-    let loginType = prompt('login : l\nsign up : s\nguest : g');
-    if (loginType !== 'l' && loginType !== 's') {
-        loginType = 'g';
-        console.log('continue as guest user');
-        return;
-    }
+function loadSettings(settings) {
+    music.volume = settings.volume;
+    displayDistanceUnit = settings.lengthUnit;
+    displayMassUnit = settings.massUnit;
+    displaySpeedUnit = settings.speedUnit;
 
-    let inUsername = prompt("Enter username: ");
-    let inPassword = prompt("Enter password: ");
-
-    // signup
-    if (loginType === 's') {
-        let inPasswordHash = inPassword;
-        let data = { username: inUsername, passwordHash: inPasswordHash };
-        socket.emit('signupUser', data); 
-    } else if (loginType === 'l') {
-        let inPasswordHash = inPassword;
-        let data = { username: inUsername, passwordHash: inPasswordHash };
-        socket.emit('loginUser', data);
-    }
-    
-}
-
-function loginError(err) {
-    console.log('login error', err);
+    updatePopupBoxUnits();
+    updateUnitSettingsBoxes();
 }
 
 function updatePopupBoxUnits() {
