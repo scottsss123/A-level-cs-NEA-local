@@ -153,7 +153,7 @@ function setup() {
             if (inUsername.length === 0) {
                 return;
             }
-            let inPassword = prompt("Sign Up:\nEnter password: ");
+            let inPassword = prompt("Sign Up:\nEnter password (use unique password): ");
             let inPasswordHash = inPassword; // no password hash yet
             let data = { username: inUsername, passwordHash: inPasswordHash };
             socket.emit('signupUser', data);
@@ -424,6 +424,7 @@ function setUser(data) { //data = { userID : int, username : str}
 }
 
 function logOut() {
+    alert('succeessfully logged out');
     currentUserName = "guest";
     currentUserID = 0;
 }
