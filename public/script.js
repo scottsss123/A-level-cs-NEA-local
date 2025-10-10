@@ -76,6 +76,7 @@ function setup() {
     socket.on('alert', (txt) => {alert(txt)});
     socket.on('setUser', (data) => { setUser(data) });
     socket.on('loadSettings', (settings) => { loadSettings(settings) });
+    socket.on('setCurrentSimulationID', (id) => { currentSimulation.setID(id) });
     // log current users
     //socket.emit('logUsernames');
     //socket.emit('logPasswordHashes');
@@ -170,13 +171,21 @@ function setup() {
         // initialising pause menu buttons
         let pauseMenuButtons = [];
         // unpause button
-        pauseMenuButtons.push(new Button(windowWidth / 2, (windowHeight / 2) - 3 * mainMenuButtonOffset, mainButtonWidth, mainButtonHeight, 'continue simulation', states.indexOf('main simulation')));
+        pauseMenuButtons.push(new Button(windowWidth / 2, (windowHeight / 2) - 5 * mainMenuButtonOffset, mainButtonWidth, mainButtonHeight, 'continue simulation', states.indexOf('main simulation')));
         // learn button
-        pauseMenuButtons.push(new Button(windowWidth / 2, (windowHeight / 2) - mainMenuButtonOffset, mainButtonWidth, mainButtonHeight, 'learn', states.indexOf('learn menu')));
+        pauseMenuButtons.push(new Button(windowWidth / 2, (windowHeight / 2) -3 * mainMenuButtonOffset, mainButtonWidth, mainButtonHeight, 'learn', states.indexOf('learn menu')));
         // settings menu button
-        pauseMenuButtons.push(new Button(windowWidth / 2, (windowHeight / 2) + mainMenuButtonOffset, mainButtonWidth, mainButtonHeight, 'settings', states.indexOf('settings menu')));
+        pauseMenuButtons.push(new Button(windowWidth / 2, (windowHeight / 2) -1 * mainMenuButtonOffset, mainButtonWidth, mainButtonHeight, 'settings', states.indexOf('settings menu')));
+        // save simulation button
+        let saveSimulationButton = new Button(windowWidth / 2, (windowHeight / 2) + 1 * mainMenuButtonOffset, mainButtonWidth, mainButtonHeight, 'save simulation', -1);
+        saveSimulationButton.onPress = saveSimulation;
+        pauseMenuButtons.push(saveSimulationButton);
+        // save as new simulation button
+        let saveAsNewSimulationButton = new Button(windowWidth / 2, (windowHeight / 2) + 3 * mainMenuButtonOffset, mainButtonWidth, mainButtonHeight, 'save as new simulation', -1);
+        saveAsNewSimulationButton.onPress = saveAsSimulation;
+        pauseMenuButtons.push(saveAsNewSimulationButton);
         // main menu button
-        pauseMenuButtons.push(new Button(windowWidth / 2, (windowHeight / 2) + 3 * mainMenuButtonOffset, mainButtonWidth, mainButtonHeight, 'main menu', states.indexOf('main menu')));
+        pauseMenuButtons.push(new Button(windowWidth / 2, (windowHeight / 2) + 5 * mainMenuButtonOffset, mainButtonWidth, mainButtonHeight, 'main menu', states.indexOf('main menu')));
 
         // simulation tutorial menu buttons
         let simTutorialMenuButtons = [];
@@ -427,6 +436,61 @@ function logOut() {
     alert('succeessfully logged out');
     currentUserName = "guest";
     currentUserID = 0;
+}
+
+function saveSimulation() {
+    if(currentUserID <= 0) {
+        alert('must be logged in to save simulations, try profile menu');
+        return;
+    }
+
+    let name = prompt("Save simulation\nEnter simulation name (leave blank to leave name unchanged):");
+    let description = prompt("Save simulation\nEnter simulation description (leave blank to leave description unchanged):");
+    let isPublic = prompt("Save simulation\nAllow other users to see and load this simulation? (y/n) (leave blank to leave unchanged):");
+    
+    let data = {
+        simulationID: currentSimulation.getID(),
+        userID: currentUserID, 
+        simulationString: JSON.stringify(currentSimulation.getSimulationData()), 
+        isPublic: isPublic,
+        name: name,
+        description: description,
+    };
+
+    socket.emit('saveSimulation', data);
+}
+
+function saveAsSimulation() {
+
+    if(currentUserID <= 0) {
+        alert('must be logged in to save simulations, try profile menu');
+        return;
+    }
+
+    let name = prompt("Save as new simulation\nEnter simulation name:");
+    let description = prompt("Save as new simulation\nEnter simulation description:");
+    let isPublicInput = prompt("Save as new simulation\nAllow other users to see and load this simulation? (y/n)");
+    let isPublic = 0;
+
+    if (!name) {
+        name = "no simulation name";
+    }
+    if (!description) {
+        description = "no simulation description";
+    }
+    if(isPublicInput === 'y') {
+        isPublic = 1;
+    }
+
+    let data = {
+        userID: currentUserID, 
+        simulationString: JSON.stringify(currentSimulation.getSimulationData()), 
+        isPublic: isPublic,
+        name: name,
+        description: description,
+    };
+
+    socket.emit('saveAsSimulation', data);
 }
 
 // called once per frame

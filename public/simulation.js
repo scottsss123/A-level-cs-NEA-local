@@ -6,6 +6,7 @@ class Simulation {
     #prevTimeRate; // float
     #G; // gravitational constant float
     #focus; // bool / string
+    #id;
 
     constructor() {
         this.#camera = new Camera([0,0], 1);
@@ -144,6 +145,14 @@ class Simulation {
         return;
     }
 
+    setID(id) {
+        this.#id = id;
+    }
+
+    getID() {
+        return this.#id;
+    }
+
     getSimulationData() {
         let bodyArr = [];
         let focus = false;
@@ -161,7 +170,8 @@ class Simulation {
             timeRate: this.#timeRate,
             prevTimeRate: this.#prevTimeRate,
             G: this.#G,  
-            focus: focus
+            focus: focus, 
+            id: id
         }
     }
 }

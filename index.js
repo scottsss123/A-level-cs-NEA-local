@@ -3,6 +3,7 @@ const sqlite3 = require('sqlite3');
 var express = require('express');
 var socket = require('socket.io');
 const { emit } = require('process');
+const { resolve } = require('path');
 
 const db = new sqlite3.Database('spaceSimulationDB.db');
 
@@ -36,6 +37,8 @@ function connected(socket) {
     socket.on('insertSimulation', (data) => { insertSimulation(data) });
     socket.on('saveSettings', (data) => { saveSettings(data) });
     socket.on('loadSettings', (data) => { loadSettings(data) });
+    socket.on('saveSimulation', (data) => { saveSimulation(data) });
+    socket.on('saveAsSimulation', (data) => { saveAsSimulation(data) });
 }
 
 // log db usernames to serverside console
@@ -253,4 +256,73 @@ async function loadSettings(data) { // data = {userID: int}
         }
     }
     io.emit('alert', 'settings failed to load, try logging in');
+}
+
+function getSimulationIDs() {
+    let sql = "SELECT SimulationID FROM Simulations;";
+
+    let IDs = [];
+
+    return new Promise((resolve) => {
+        db.all(sql, (err,rows) => {
+            if (err) {
+                console.log(err);
+            } else {
+                for (let row of rows) {
+                    IDs.push(row.SimulationID);
+                }
+            }
+        })
+        resolve(IDs);
+    })
+}
+
+async function saveSimulation(data) {
+    let simulationID = data.simulationID;
+    let userID = data.userID;
+    let simulationString = data.simulationString;
+    let isPublic = data.isPublic;
+    let name = data.name;
+    let description = data.description;
+
+    let simulationExists = false;
+    let simulationIDs = await getSimulationIDs();
+    
+}
+
+function getLastSimulationId() {
+    let sql = "SELECT SimulationID FROM Simulations;";
+
+    return new Promise((resolve) => {
+        db.all(sql, (err,rows) => {
+            if (err) {
+                console.log(err);
+            } else {
+                resolve(rows[rows.length - 1].SimulationID);
+            }
+        })
+    })
+}
+
+async function saveAsSimulation(data) { // data = { userID: int , simulationString: str, isPublic: int (1/0), name: str, description: str }
+    
+    let userID = data.userID;
+    let simulationString = data.simulationString;
+    let isPublic = data.isPublic;
+    let name = data.name;
+    let description = data.description;
+
+    let sql = "INSERT INTO Simulations (UserID, Simulation, IsPublic, Name, Description) VALUES (" + userID + ", '" + simulationString + "', " + isPublic + ", '" + name+"', '" + description + "');";
+
+    db.all(sql, (err) => {
+        if (err) {
+            console.log(err);
+            io.emit('alert', 'simulation save as error: ' + err);
+        } else {
+            io.emit('alert', "simulation successfullty saved\nname: " + name);
+        }
+    });
+
+    let lastSimulationID = await getLastSimulationId();
+    io.emit('setCurrentSimulationID', (lastSimulationID));
 }
