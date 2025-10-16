@@ -1,7 +1,7 @@
 var socket = io.connect();
 
 // initialising global variables
-const states = ['main menu', 'main simulation', 'learn menu', 'pause menu', 'simulation tutorial menu', 'physics information menu', 'newtonian mechanics menu', 'si units menu', 'settings menu', 'profile'];
+const states = ['main menu', 'main simulation', 'learn menu', 'pause menu', 'simulation tutorial menu', 'physics information menu', 'newtonian mechanics menu', 'si units menu', 'settings menu', 'profile menu', 'save simulation menu', 'load simulation menu'];
 
 // storing image data
 let starFieldBackgroundImage;
@@ -74,6 +74,7 @@ function setup() {
     
     socket.on('loginError', (err) => { loginError(err) });
     socket.on('alert', (txt) => {alert(txt)});
+    socket.on('log', (data) => {console.log(data)});
     socket.on('setUser', (data) => { setUser(data) });
     socket.on('loadSettings', (settings) => { loadSettings(settings) });
     socket.on('setCurrentSimulationID', (id) => { currentSimulation.setID(id) });
@@ -114,7 +115,7 @@ function setup() {
         // settings button
         mainMenuButtons.push(new Button(mainMenuButtonX, (windowHeight / 2) + (3 * mainMenuButtonOffset), mainButtonWidth, mainButtonHeight, 'settings', states.indexOf('settings menu')));
         // profile button
-        mainMenuButtons.push(new Button(mainMenuButtonX, (windowHeight / 2) + (5 * mainMenuButtonOffset), mainButtonWidth, mainButtonHeight, 'Profile', states.indexOf('profile')));
+        mainMenuButtons.push(new Button(mainMenuButtonX, (windowHeight / 2) + (5 * mainMenuButtonOffset), mainButtonWidth, mainButtonHeight, 'Profile', states.indexOf('profile menu')));
         // login button
         //let loginButton = new Button(mainMenuButtonX, (windowHeight / 2) + (5 * mainMenuButtonOffset), mainButtonWidth, mainButtonHeight, 'Log in', -1);
         //loginButton.onPress = () => {
@@ -138,7 +139,7 @@ function setup() {
 
         logInButton.onPress = () => {
             let inUsername = prompt("Log In:\nLeave blank to cancel\nEnter username: ");
-            if (inUsername.length === 0) {
+            if (!inUsername) {
                 return;
             }
             let inPassword = prompt("Log In:\nEnter password: ");
@@ -175,19 +176,28 @@ function setup() {
         // learn button
         pauseMenuButtons.push(new Button(windowWidth / 2, (windowHeight / 2) -3 * mainMenuButtonOffset, mainButtonWidth, mainButtonHeight, 'learn', states.indexOf('learn menu')));
         // settings menu button
-        pauseMenuButtons.push(new Button(windowWidth / 2, (windowHeight / 2) -1 * mainMenuButtonOffset, mainButtonWidth, mainButtonHeight, 'settings', states.indexOf('settings menu')));
+        pauseMenuButtons.push(new Button(windowWidth / 2, (windowHeight / 2) -1* mainMenuButtonOffset, mainButtonWidth, mainButtonHeight, 'settings', states.indexOf('settings menu')));
         // save simulation button
-        let saveSimulationButton = new Button(windowWidth / 2, (windowHeight / 2) + 1 * mainMenuButtonOffset, mainButtonWidth, mainButtonHeight, 'save simulation', -1);
-        saveSimulationButton.onPress = saveSimulation;
-        pauseMenuButtons.push(saveSimulationButton);
-        // save as new simulation button
-        let saveAsNewSimulationButton = new Button(windowWidth / 2, (windowHeight / 2) + 3 * mainMenuButtonOffset, mainButtonWidth, mainButtonHeight, 'save as new simulation', -1);
-        saveAsNewSimulationButton.onPress = saveAsSimulation;
-        pauseMenuButtons.push(saveAsNewSimulationButton);
-        // main menu button
+        pauseMenuButtons.push(new Button(windowWidth / 2, (windowHeight / 2) + 1 * mainMenuButtonOffset, mainButtonWidth, mainButtonHeight, 'save simulation', states.indexOf('save simulation menu')));
+        pauseMenuButtons.push(new Button(windowWidth /2, (windowHeight/2) + 3 * mainMenuButtonOffset, mainButtonWidth, mainButtonHeight, 'load simulation', states.indexOf('load simulation menu')));
+	// main menu button
         pauseMenuButtons.push(new Button(windowWidth / 2, (windowHeight / 2) + 5 * mainMenuButtonOffset, mainButtonWidth, mainButtonHeight, 'main menu', states.indexOf('main menu')));
 
-        // simulation tutorial menu buttons
+        // save simulation menu buttons
+	let saveSimulationButtons = [];
+	saveSimulationButtons.push(new Button(mainMenuButtonX, (windowHeight / 2) + (3 * mainMenuButtonOffset), mainButtonWidth, mainButtonHeight, 'back', states.indexOf('pause menu')));
+	let saveSimulationButton = new Button(mainMenuButtonX, (windowHeight / 2) - (1 * mainMenuButtonOffset), mainButtonWidth, mainButtonHeight, 'save simulation', -1);
+	let saveAsNewSimulationButton = new Button(mainMenuButtonX, (windowHeight / 2) + 1 * mainMenuButtonOffset, mainButtonWidth, mainButtonHeight, 'save as new simulation', -1);
+	saveSimulationButton.onPress = saveSimulation;
+	saveAsNewSimulationButton.onPress = saveAsSimulation;
+	saveSimulationButtons.push(saveSimulationButton);
+	saveSimulationButtons.push(saveAsNewSimulationButton);
+	
+	// load simulation menu buttons
+	let loadSimulationButtons = [];
+	loadSimulationButtons.push(new Button(mainMenuButtonX, (windowHeight / 2) + (3 * mainMenuButtonOffset), mainButtonWidth, mainButtonHeight, 'back', states.indexOf('pause menu')));
+
+	// simulation tutorial menu buttons
         let simTutorialMenuButtons = [];
         simTutorialMenuButtons.push(new Button(topRightMenuButtonX, topMenuButtonY, mainButtonWidth, mainButtonHeight, 'learn', states.indexOf('learn menu')));
         simTutorialMenuButtons.push(new Button(topRightMenuButtonX, topMenuButtonY + 2 * mainMenuButtonOffset, mainButtonWidth, mainButtonHeight, 'main menu', states.indexOf('main menu')));
@@ -311,7 +321,9 @@ function setup() {
         buttons[states.indexOf('newtonian mechanics menu')] = newtonianMechanicsMenuButtons;
         buttons[states.indexOf('si units menu')] = SIUnitsMenuButtons;
         buttons[states.indexOf('settings menu')] = settingsMenuButtons;
-        buttons[states.indexOf('profile')] = profileButtons;
+        buttons[states.indexOf('profile menu')] = profileButtons;
+	buttons[states.indexOf('save simulation menu')] = saveSimulationButtons;
+	buttons[states.indexOf('load simulation menu')] = loadSimulationButtons;
     }
     
     function initialiseMenuTextBoxes() {
@@ -448,8 +460,14 @@ function saveSimulation() {
     let description = prompt("Save simulation\nEnter simulation description (leave blank to leave description unchanged):");
     let isPublic = prompt("Save simulation\nAllow other users to see and load this simulation? (y/n) (leave blank to leave unchanged):");
     
+    let currentSimulationID = currentSimulation.getID();
+    if (!currentSimulationID) {
+        alert("simulation must exist to be saved, try 'save as new simulation'");
+        return;
+    }
+
     let data = {
-        simulationID: currentSimulation.getID(),
+        simulationID: currentSimulationID,
         userID: currentUserID, 
         simulationString: JSON.stringify(currentSimulation.getSimulationData()), 
         isPublic: isPublic,
@@ -637,9 +655,17 @@ function drawUpdateBodyPopupBox() {
 }
 
 function drawCurrentState() {
+    let currentSimulationID = currentSimulation.getID();
+    if (!currentSimulationID) {
+        currentSimulationID = "no ID";
+    }
     let newStateIndicatorContents = states[state];
     if (state === 1) { newStateIndicatorContents += " - press 'esc' to pause"; }
     else if (state === 3) { newStateIndicatorContents += " - press 'esc' to unpase"; }
+    if (state === 1 || state === 3) {
+        newStateIndicatorContents += " - simulation ID : " + currentSimulationID; 
+    }
+    newStateIndicatorContents += " - username : " + currentUserName + " - user ID : " + currentUserID;
     stateIndicator.updateContents(newStateIndicatorContents);
     stateIndicator.display();
 }

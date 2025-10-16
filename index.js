@@ -142,6 +142,7 @@ async function signupUser(data) {
             io.emit('alert', 'Signup error: ' + err);
         } else {
             io.emit('alert', "User '" + username + "' created");
+            io.emit('setUser', {username: username, userID: getLastUserID()});
         }
     })
 }
@@ -258,10 +259,10 @@ async function loadSettings(data) { // data = {userID: int}
     io.emit('alert', 'settings failed to load, try logging in');
 }
 
-function getSimulationIDs() {
-    let sql = "SELECT SimulationID FROM Simulations;";
+function getSimulationMetaDatas() {
+    let sql = "SELECT SimulationID, IsPublic, Name, Description FROM Simulations;";
 
-    let IDs = [];
+    let simulationMetaDatas = [];
 
     return new Promise((resolve) => {
         db.all(sql, (err,rows) => {
@@ -269,25 +270,62 @@ function getSimulationIDs() {
                 console.log(err);
             } else {
                 for (let row of rows) {
-                    IDs.push(row.SimulationID);
+                    simulationMetaDatas.push(row);
                 }
             }
         })
-        resolve(IDs);
+	console.log(simulationMetaDatas); ///////////////////////////////////////////////////////////////////////////////////
+        resolve(simulationMetaDatas);
     })
 }
 
 async function saveSimulation(data) {
+    // id of simulation & attached user to be saved, must exist 
     let simulationID = data.simulationID;
     let userID = data.userID;
     let simulationString = data.simulationString;
+    // isPublic, name, description, may be empty strings, if so these remain unchanged in table
     let isPublic = data.isPublic;
     let name = data.name;
     let description = data.description;
 
-    let simulationExists = false;
-    let simulationIDs = await getSimulationIDs();
-    
+    // get simulation to be saved's existing value of IsPublic, Name and Description
+    let simulationMetaDatas = await getSimulationMetaDatas();
+    let currentSimulationMetaData;
+    for (let i = 0; i < simulationMetaDatas.length; i++) {
+        if (simulationMetaDatas.SimulationID === simulationID) {
+            currentSimulationMetaData = simulationMetaDatas[i];
+        }
+    }
+    if (!currentSimulationMetaData) {
+        console.log('uh oh :('); // fix this before documenting
+    }
+
+    if (!isPublic) {
+        isPublic = currentSimulationMetaData.IsPublic
+    } else if (isPublic !== 'y') {
+        isPublic = 0;
+    } else {
+        isPublic = 1;
+    }
+    if (!name) {
+        name = currentSimulationMetaData.Name;
+    }
+    if (!description) {
+        description = currentSimulationMetaData.description;
+    }
+
+    // save simulation
+
+    let sql = "UPDATE Simulations SET UserID = " + userID + ", Simulation = '" + simulationString + "', IsPublic = " + isPublic + ", Name = '" + name + "', Description = '" + description + "' WHERE SimulationID = " + simulationID + ";";
+    console.log(sql);
+    db.all(sql, (err) => {
+        if (err) {
+            console.log(err);
+        } else {
+            io.emit('alert', 'simulation saved successfully');
+        }
+    })
 }
 
 function getLastSimulationId() {
@@ -299,6 +337,20 @@ function getLastSimulationId() {
                 console.log(err);
             } else {
                 resolve(rows[rows.length - 1].SimulationID);
+            }
+        })
+    })
+}
+
+function getLastUserID() {
+    let sql = "SELECT SimulationID FROM Users;";
+
+    return new Promise((resolve) => {
+        db.all(sql, (err,rows) => {
+            if (err) {
+                console.log(err);
+            } else {
+                resolve(rows[rows.length - 1].UserID);
             }
         })
     })
@@ -324,5 +376,6 @@ async function saveAsSimulation(data) { // data = { userID: int , simulationStri
     });
 
     let lastSimulationID = await getLastSimulationId();
-    io.emit('setCurrentSimulationID', (lastSimulationID));
+    io.emit('setCurrentSimulationID', lastSimulationID);
+    io.emit('log', lastSimulationID);
 }

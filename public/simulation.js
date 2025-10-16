@@ -171,7 +171,7 @@ class Simulation {
             prevTimeRate: this.#prevTimeRate,
             G: this.#G,  
             focus: focus, 
-            id: id
+            id: this.#id
         }
     }
 }
