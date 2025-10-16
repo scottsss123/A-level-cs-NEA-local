@@ -39,6 +39,8 @@ function connected(socket) {
     socket.on('loadSettings', (data) => { loadSettings(data) });
     socket.on('saveSimulation', (data) => { saveSimulation(data) });
     socket.on('saveAsSimulation', (data) => { saveAsSimulation(data) });
+    socket.on('loglastuserid', () => {loglastuserid()})
+    socket.on('setCurrentSimulationByID', (ID) => {setCurrentSimulationByID(ID)});
 }
 
 // log db usernames to serverside console
@@ -84,6 +86,7 @@ function logUsers() {
 
 function getUsers() {
     let sql = "SELECT * FROM Users;";
+    console.log("sql:", sql);
 
     return new Promise((resolve) => {
         db.all(sql, (err,rows) => {
@@ -102,6 +105,7 @@ function insertSimulation(data) { // UserID, SimulationJSON, IsPublic
     let isPublic = data.isPublic;
 
     let sql = "INSERT INTO Simulations (UserID, Simulation, IsPublic) VALUES ('" + userID + "','"+simulationJSON+"','"+isPublic+"');";
+    //console.log("sql:", sql);
 
     db.all(sql, (err) => {
         if (err) {
@@ -134,15 +138,17 @@ async function signupUser(data) {
     }
 
     sql = "INSERT INTO Users (Username, PasswordHash) VALUES ('"+username+"','"+passwordHash+"');";
+    console.log(sql);
 
     // execut sql and log any sql errors
-    db.all(sql, (err) => {
+    db.all(sql, async (err) => {
         if (err) {
             console.log(err);
             io.emit('alert', 'Signup error: ' + err);
         } else {
             io.emit('alert', "User '" + username + "' created");
-            io.emit('setUser', {username: username, userID: getLastUserID()});
+            let lastUserID = await getLastUserID();
+            io.emit('setUser', {username: username, userID: lastUserID});
         }
     })
 }
@@ -181,6 +187,7 @@ async function loginUser(data) {
 
 function getSettings() {
     let sql = "SELECT * FROM Settings;";
+    console.log("sql:", sql);
 
     return new Promise((resolve) => {
         db.all(sql, (err,rows) => {
@@ -221,6 +228,7 @@ async function saveSettings(data) { // data = { userID: int, volume: 0/1, length
     if (!settingsExists) {
 
         let sql = "INSERT INTO Settings (UserID, Volume, LengthUnit, MassUnit, SpeedUnit) VALUES (" + userID + ", " + volume + ", '" + lengthUnit + "', '" + massUnit+"', '" + speedUnit + "');";
+        console.log("sql:", sql);
         // execut sql and log any sql errors
         db.all(sql, (err) => {
             if (err) {
@@ -261,21 +269,16 @@ async function loadSettings(data) { // data = {userID: int}
 
 function getSimulationMetaDatas() {
     let sql = "SELECT SimulationID, IsPublic, Name, Description FROM Simulations;";
-
-    let simulationMetaDatas = [];
+    console.log("sql:", sql);
 
     return new Promise((resolve) => {
         db.all(sql, (err,rows) => {
             if (err) {
                 console.log(err);
             } else {
-                for (let row of rows) {
-                    simulationMetaDatas.push(row);
-                }
+                resolve(rows);
             }
         })
-	console.log(simulationMetaDatas); ///////////////////////////////////////////////////////////////////////////////////
-        resolve(simulationMetaDatas);
     })
 }
 
@@ -293,7 +296,7 @@ async function saveSimulation(data) {
     let simulationMetaDatas = await getSimulationMetaDatas();
     let currentSimulationMetaData;
     for (let i = 0; i < simulationMetaDatas.length; i++) {
-        if (simulationMetaDatas.SimulationID === simulationID) {
+        if (simulationMetaDatas[i].SimulationID === simulationID) {
             currentSimulationMetaData = simulationMetaDatas[i];
         }
     }
@@ -330,6 +333,7 @@ async function saveSimulation(data) {
 
 function getLastSimulationId() {
     let sql = "SELECT SimulationID FROM Simulations;";
+    console.log("sql:", sql);
 
     return new Promise((resolve) => {
         db.all(sql, (err,rows) => {
@@ -343,13 +347,15 @@ function getLastSimulationId() {
 }
 
 function getLastUserID() {
-    let sql = "SELECT SimulationID FROM Users;";
+    let sql = "SELECT UserID FROM Users;";
+    console.log("sql:", sql);
 
     return new Promise((resolve) => {
         db.all(sql, (err,rows) => {
             if (err) {
                 console.log(err);
             } else {
+                console.log(rows[rows.length -1].UserID);
                 resolve(rows[rows.length - 1].UserID);
             }
         })
@@ -365,6 +371,7 @@ async function saveAsSimulation(data) { // data = { userID: int , simulationStri
     let description = data.description;
 
     let sql = "INSERT INTO Simulations (UserID, Simulation, IsPublic, Name, Description) VALUES (" + userID + ", '" + simulationString + "', " + isPublic + ", '" + name+"', '" + description + "');";
+    //console.log("sql:", sql);
 
     db.all(sql, (err) => {
         if (err) {
@@ -378,4 +385,25 @@ async function saveAsSimulation(data) { // data = { userID: int , simulationStri
     let lastSimulationID = await getLastSimulationId();
     io.emit('setCurrentSimulationID', lastSimulationID);
     io.emit('log', lastSimulationID);
+}
+
+function getSimulationByID(ID) {
+    let sql = "SELECT * FROM Simulations WHERE SimulationID = " + ID;
+
+    return new Promise((resolve) => {
+        db.all(sql, (err,rows) => {
+            if (err) {
+                console.log(err);
+            } else {
+                console.log(rows);
+                resolve(rows);
+            }
+        })
+    })
+}
+
+async function setCurrentSimulationByID(ID) {
+    let simulationData = await getSimulationByID(ID);
+    let outData = simulationData.Simulation;
+    io.emit('setCurrentSimulation', outData);
 }
