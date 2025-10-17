@@ -44,6 +44,9 @@ let newBodyNumber = 0;
 let currentUserName = 'guest';
 let currentUserID = 0;
 
+let savedSimulationDescriptionBoxes = [];
+let publicSimulationDescriptionBoxes = [];
+
 // executed before setup to load assets in more modular way
 function preload() {
     loadFont("./assets/monoMMM_5.ttf");
@@ -79,12 +82,7 @@ function setup() {
     socket.on('loadSettings', (settings) => { loadSettings(settings) });
     socket.on('setCurrentSimulationID', (id) => { currentSimulation.setID(id); });
     socket.on('setCurrentSimulation', (data) => { setCurrentSimulation(data); });
-    // log current users
-    //socket.emit('logUsernames');
-    //socket.emit('logPasswordHashes');
-    //socket.emit('logUsers');
-    //socket.emit('getUsers');
-    //login();
+    socket.on('updateUserSimulationDescriptionBoxes', (userSimulationMetaDatas) => { updateUserSimulationDescriptionBoxes(userSimulationMetaDatas); });
 
     // q5 function and inbuilt variables
     createCanvas(windowWidth, windowHeight, WEBGL);
@@ -190,15 +188,19 @@ function setup() {
 	
 	    // load simulation menu buttons
 	    let loadSimulationButtons = [];
-        loadSimulationButtons.push(new Button(mainMenuButtonX, (windowHeight / 2) - (1 * mainMenuButtonOffset), mainButtonWidth, mainButtonHeight, 'my simulations', states.indexOf('my simulations menu')));
-        loadSimulationButtons.push(new Button(mainMenuButtonX, (windowHeight / 2) + (1 * mainMenuButtonOffset), mainButtonWidth, mainButtonHeight, 'public simulations', states.indexOf('public simulations menu')));
+        let mySimulationsButton = new Button(mainMenuButtonX, (windowHeight / 2) - (1 * mainMenuButtonOffset), mainButtonWidth, mainButtonHeight, 'my simulations', states.indexOf('my simulations menu'));
+        mySimulationsButton.onPress = () => { socket.emit('updateSavedSimulationDescriptionBoxes', currentUserID)};
+        let publicSimulationsButton = new Button(mainMenuButtonX, (windowHeight / 2) + (1 * mainMenuButtonOffset), mainButtonWidth, mainButtonHeight, 'public simulations', states.indexOf('public simulations menu'));
+        publicSimulationsButton.onPress = () => { socket.emit('updatePublicSimulationDescriptionBoxes')};
+        loadSimulationButtons.push(mySimulationsButton);
+        loadSimulationButtons.push(publicSimulationsButton);
 	    loadSimulationButtons.push(new Button(mainMenuButtonX, (windowHeight / 2) + (3 * mainMenuButtonOffset), mainButtonWidth, mainButtonHeight, 'back', states.indexOf('pause menu')));
 
-        // my simulations menu buttons
+        // load my simulations menu buttons
         let mySimulationsButtons = [];
         mySimulationsButtons.push(new Button(topRightMenuButtonX, topMenuButtonY, mainButtonWidth, mainButtonHeight, 'back', states.indexOf('load simulation menu')));
 
-        // public simulations menu buttons
+        // load public simulations menu buttons
         let publicSimulationsButtons = [];
         publicSimulationsButtons.push(new Button(topRightMenuButtonX, topMenuButtonY, mainButtonWidth, mainButtonHeight, 'back', states.indexOf('load simulation menu')));
 
@@ -426,6 +428,12 @@ function setup() {
     initialiseIcons();
     setAccurateYear();
 
+    // refactor to use variable positions--------------------------------------------------------------------------------------------------------
+    savedSimulationDescriptionBoxes.push(new SimulationDescriptionBox(1 * width / 8 + 0 * 5, height / 5, (width/4) - 5, 0.7 * height, 1));
+    savedSimulationDescriptionBoxes.push(new SimulationDescriptionBox(3 * width / 8 + 1 * 5, height / 5, (width/4) - 5, 0.7 * height, -1));
+    savedSimulationDescriptionBoxes.push(new SimulationDescriptionBox(5 * width / 8 + 2 * 5, height / 5, (width/4) - 5, 0.7 * height, -1));
+
+
     // start looping background music after 10 seconds
     setTimeout(() => { 
         music.volume = 1;
@@ -535,10 +543,13 @@ function update() {
             mainSimKeyHeldHandler();
             // currently functionless
             currentSimulation.step();
+
+            updateInfoPopupBoxes();
             break;
         case 2:  // learn menu
             break;
         case 3:  // pause menu
+            timeRateTextBox.updateContents('x0.000')
             break;
         case 4:  // simulation tutorial menu
             break;
@@ -565,42 +576,35 @@ function draw() {
 
     // display different elements based on program state   
     switch (state) {
-        case 0:  // main menu
+        case states.indexOf('main menu'):  // main menu
             break;
-        case 1:  // main simulation
+        case states.indexOf('main simulation'):  // main simulation
             drawCurrentSimBodies();
             drawCurrentSimToolbar();
-
-            updateInfoPopupBoxes();
             drawInfoPopupBoxes();
             drawUpdateBodyPopupBox();
             break;
-        case 2:  // learn menu
+        case states.indexOf('learn menu'):  // learn menu
             break;
-        case 3:  // pause menu
+        case states.indexOf('pause menu'):  // pause menu
             drawCurrentSimBodies();
             // possible bodge {
             drawCurrentSimToolbar();
-            timeRateTextBox.updateContents('x0.000')
             timeRateTextBox.display();
             // } not necessary to have but i think looks nice
             break;
-        case 4:  // simulation tutorial menu
-            break;
-        case 5:  // physics info menu
-            break;
-        case 6:  // newtonian mechanics menu
-            break;
-        case 7:  // SI units menu
+        case states.indexOf('my simulations menu'):
+            drawSavedSimulationsBoxes();
             break;
         default:
             break;
     }
+
     // display elements of current state
+
     drawButtons();
     drawTextBoxes();
     drawCurrentState();
-
     
 }
 
@@ -612,6 +616,30 @@ function loadSettings(settings) {
 
     updatePopupBoxUnits();
     updateUnitSettingsBoxes();
+}
+
+function updatePublicSimulationDescriptionBoxes(simulationMetaDatas) {
+
+}
+
+function updateSavedSimulationDescriptionBoxes(userSimulationMetaDatas) {
+    let linkedSimulationIDs = [];
+    for (let savedSimulationDescriptionBox of savedSimulationDescriptionBoxes) {
+        linkedSimulationIDs.push(savedSimulationDescriptionBox.getLinkedSimulationID());
+    }
+
+    for (let simulationMetaData of userSimulationMetaDatas) {
+        let simulationID = simulationMetaData.SimulationID;
+        if (linkedSimulationIDs.includes(simulationID)) {
+            savedSimulationDescriptionBoxes[linkedSimulationIDs.indexOf(simulationID)].updateContents(simulationMetaData);
+        }
+    }
+}
+
+function drawSavedSimulationsBoxes() {
+    for (let savedSimulationDescriptionBox of savedSimulationDescriptionBoxes) {
+        savedSimulationDescriptionBox.display();
+    }
 }
 
 function updatePopupBoxUnits() {

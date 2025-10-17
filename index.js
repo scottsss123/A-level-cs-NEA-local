@@ -41,6 +41,7 @@ function connected(socket) {
     socket.on('saveAsSimulation', (data) => { saveAsSimulation(data) });
     socket.on('loglastuserid', () => {loglastuserid()})
     socket.on('setCurrentSimulationByID', (ID) => {setCurrentSimulationByID(ID)});
+    socket.on('updateSavedSimulationDescriptionBoxes', (ID) => {updateSavedSimulationDescriptionBoxes(ID)})
 }
 
 // log db usernames to serverside console
@@ -268,7 +269,7 @@ async function loadSettings(data) { // data = {userID: int}
 }
 
 function getSimulationMetaDatas() {
-    let sql = "SELECT SimulationID, IsPublic, Name, Description FROM Simulations;";
+    let sql = "SELECT UserID, SimulationID, IsPublic, Name, Description FROM Simulations;";
     console.log("sql:", sql);
 
     return new Promise((resolve) => {
@@ -406,4 +407,19 @@ async function setCurrentSimulationByID(ID) {
     let simulationData = await getSimulationByID(ID);
     let outData = simulationData.Simulation;
     io.emit('setCurrentSimulation', outData);
+}
+
+async function updateSavedSimulationDescriptionBoxes(ID) {
+    let simulationMetaDatas = await getSimulationMetaDatas();
+    console.log('meta datas: ' , simulationMetaDatas);
+    let userSimulationMetaDatas = [];
+
+    for (let simulationMetaData of simulationMetaDatas) {
+        if (simulationMetaData.UserID === ID) {
+            userSimulationMetaDatas.push(simulationMetaData);
+        }
+    }
+
+
+    io.emit('updateSavedSimulationDescriptionBoxes', userSimulationMetaDatas);
 }
