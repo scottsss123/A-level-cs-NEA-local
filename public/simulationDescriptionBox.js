@@ -1,20 +1,15 @@
 class SimulationDescriptionBox extends TextBox {
-    #linkedSimulationID;
 
-    constructor(inX, inY, inWidth, inHeight, inLinkedSimulationID) {
+    constructor(inX, inY, inWidth, inHeight) {
         super(inX, inY, inWidth, inHeight, "");
-
-        this.#linkedSimulationID = inLinkedSimulationID;
-    }
-
-    setLinkedSimulationID(inID) {
-        this.#linkedSimulationID = inID;
-    }
-    getLinkedSimulationID() {
-        return this.#linkedSimulationID;
     }
 
     updateContents(simulationMetaData) {
+        if (simulationMetaData === -1) {
+            super.updateContents ("no simulation saved");
+            return;
+        }
+
         let simulationName = simulationMetaData.Name;
         let simulationDescription = simulationMetaData.Description;
         let simulationID = simulationMetaData.SimulationID;
@@ -24,3 +19,4 @@ class SimulationDescriptionBox extends TextBox {
         super.updateContents(out);
     }
 }
+

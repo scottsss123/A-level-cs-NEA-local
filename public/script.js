@@ -1,3 +1,5 @@
+//const { link } = require("fs");
+
 var socket = io.connect();
 
 // initialising global variables
@@ -82,7 +84,7 @@ function setup() {
     socket.on('loadSettings', (settings) => { loadSettings(settings) });
     socket.on('setCurrentSimulationID', (id) => { currentSimulation.setID(id); });
     socket.on('setCurrentSimulation', (data) => { setCurrentSimulation(data); });
-    socket.on('updateUserSimulationDescriptionBoxes', (userSimulationMetaDatas) => { updateUserSimulationDescriptionBoxes(userSimulationMetaDatas); });
+    socket.on('updateSavedSimulationDescriptionBoxes', (userSimulationMetaDatas) => { updateSavedSimulationDescriptionBoxes(userSimulationMetaDatas); });
 
     // q5 function and inbuilt variables
     createCanvas(windowWidth, windowHeight, WEBGL);
@@ -428,11 +430,10 @@ function setup() {
     initialiseIcons();
     setAccurateYear();
 
-    // refactor to use variable positions--------------------------------------------------------------------------------------------------------
-    savedSimulationDescriptionBoxes.push(new SimulationDescriptionBox(1 * width / 8 + 0 * 5, height / 5, (width/4) - 5, 0.7 * height, 1));
-    savedSimulationDescriptionBoxes.push(new SimulationDescriptionBox(3 * width / 8 + 1 * 5, height / 5, (width/4) - 5, 0.7 * height, -1));
-    savedSimulationDescriptionBoxes.push(new SimulationDescriptionBox(5 * width / 8 + 2 * 5, height / 5, (width/4) - 5, 0.7 * height, -1));
-
+    // instantiate savedSimulationDescriptionBoxes
+    savedSimulationDescriptionBoxes.push(new SimulationDescriptionBox(1 * width / 8 + 0 * 5, height / 5, (width/4) - 5, 0.7 * height));
+    savedSimulationDescriptionBoxes.push(new SimulationDescriptionBox(3 * width / 8 + 1 * 5, height / 5, (width/4) - 5, 0.7 * height));
+    savedSimulationDescriptionBoxes.push(new SimulationDescriptionBox(5 * width / 8 + 2 * 5, height / 5, (width/4) - 5, 0.7 * height));
 
     // start looping background music after 10 seconds
     setTimeout(() => { 
@@ -623,16 +624,20 @@ function updatePublicSimulationDescriptionBoxes(simulationMetaDatas) {
 }
 
 function updateSavedSimulationDescriptionBoxes(userSimulationMetaDatas) {
-    let linkedSimulationIDs = [];
-    for (let savedSimulationDescriptionBox of savedSimulationDescriptionBoxes) {
-        linkedSimulationIDs.push(savedSimulationDescriptionBox.getLinkedSimulationID());
-    }
+    //let linkedSimulationIDs = [];
+    //for (let savedSimulationDescriptionBox of savedSimulationDescriptionBoxes) {
+    //    linkedSimulationIDs.push(savedSimulationDescriptionBox.getLinkedSimulationID());
+    //}
 
-    for (let simulationMetaData of userSimulationMetaDatas) {
-        let simulationID = simulationMetaData.SimulationID;
-        if (linkedSimulationIDs.includes(simulationID)) {
-            savedSimulationDescriptionBoxes[linkedSimulationIDs.indexOf(simulationID)].updateContents(simulationMetaData);
-        }
+    //console.log(userSimulationMetaDatas);
+
+    let i = 0;
+    for (i; i < 3 && i < userSimulationMetaDatas.length; i++) {
+        console.log(i, userSimulationMetaDatas[i])
+        savedSimulationDescriptionBoxes[i].updateContents(userSimulationMetaDatas[i]);
+    }
+    for (i; i < 3; i++) {
+        savedSimulationDescriptionBoxes[i].updateContents(-1);
     }
 }
 

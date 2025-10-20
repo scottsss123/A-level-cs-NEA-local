@@ -270,7 +270,7 @@ async function loadSettings(data) { // data = {userID: int}
 
 function getSimulationMetaDatas() {
     let sql = "SELECT UserID, SimulationID, IsPublic, Name, Description FROM Simulations;";
-    console.log("sql:", sql);
+    // console.log("sql:", sql);
 
     return new Promise((resolve) => {
         db.all(sql, (err,rows) => {
@@ -411,7 +411,6 @@ async function setCurrentSimulationByID(ID) {
 
 async function updateSavedSimulationDescriptionBoxes(ID) {
     let simulationMetaDatas = await getSimulationMetaDatas();
-    console.log('meta datas: ' , simulationMetaDatas);
     let userSimulationMetaDatas = [];
 
     for (let simulationMetaData of simulationMetaDatas) {
@@ -419,6 +418,8 @@ async function updateSavedSimulationDescriptionBoxes(ID) {
             userSimulationMetaDatas.push(simulationMetaData);
         }
     }
+
+    console.log('meta datas: ' , userSimulationMetaDatas);
 
 
     io.emit('updateSavedSimulationDescriptionBoxes', userSimulationMetaDatas);
