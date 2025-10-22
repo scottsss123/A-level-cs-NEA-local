@@ -81,12 +81,13 @@ class UpdateBodyPopupBox extends Box {
         // prompt the user for a new body mass, with the current unit 
         let userInput = prompt('Enter new body mass ( ' + this.#displayMassUnit + ' ) (= ' + (1/massUnits[this.#displayMassUnit]).toPrecision(3) + 'kg )');
         // return / break out of method if user enters invalid answer e.g non-numeric
-        if (!userInput || userInput < 0 || !parseFloat(userInput)) {
+        if (!userInput || userInput < 0 || parseFloat(userInput) === undefined) {
             return true;
         }
         // convert user input to float and standard unit
         let numInput = parseFloat(userInput);
         // return false to delete attached body
+        console.log(numInput);
         if (numInput === 0) {
             return false;
         }

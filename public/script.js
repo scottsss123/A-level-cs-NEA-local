@@ -1,5 +1,3 @@
-//const { link } = require("fs");
-
 var socket = io.connect();
 
 // initialising global variables
@@ -49,22 +47,24 @@ let currentUserID = 0;
 let savedSimulationDescriptionBoxes = [];
 let publicSimulationDescriptionBoxes = [];
 
+let bodyImages = {};
+
 // executed before setup to load assets in more modular way
 function preload() {
     loadFont("./assets/monoMMM_5.ttf");
     starFieldBackgroundImage = loadImage("./assets/starfield.png");
 
-    earthImage = loadImage("./assets/earth.png");
-    venusImage = loadImage("./assets/venus.png");
-    moonImage = loadImage("./assets/moon.png");
-    marsImage = loadImage("./assets/mars.png");
-    jupiterImage = loadImage("./assets/jupiter.png");
-    sunImage = loadImage("./assets/sun.png");
-    saturnImage = loadImage("./assets/saturn.png");
-    uranusImage = loadImage("./assets/uranus.png");
-    neptuneImage = loadImage("./assets/neptune.png");
-    mercuryImage = moonImage;
-
+    bodyImages["earth"] = loadImage("./assets/earth.png");
+    bodyImages["venus"] = loadImage("./assets/venus.png");
+    bodyImages["moon"] = loadImage("./assets/moon.png");
+    bodyImages["mercury"] = loadImage("./assets/moon.png");
+    bodyImages["mars"] = loadImage("./assets/mars.png");
+    bodyImages["jupiter"] = loadImage("./assets/jupiter.png");
+    bodyImages["sun"] = loadImage("./assets/sun.png");
+    bodyImages["saturn"] = loadImage("./assets/saturn.png");
+    bodyImages["uranus"] = loadImage("./assets/uranus.png");
+    bodyImages["neptune"] = loadImage("./assets/neptune.png");
+    
     cameraIconImage = loadImage("./assets/cameraIcon.png");
     pauseIconImage = loadImage("./assets/pauseIcon.png");
     playIconImage = loadImage("./assets/playIcon.png");
@@ -85,6 +85,7 @@ function setup() {
     socket.on('setCurrentSimulationID', (id) => { currentSimulation.setID(id); });
     socket.on('setCurrentSimulation', (data) => { setCurrentSimulation(data); });
     socket.on('updateSavedSimulationDescriptionBoxes', (userSimulationMetaDatas) => { updateSavedSimulationDescriptionBoxes(userSimulationMetaDatas); });
+    socket.on('updatePublicSimulationDescriptionBoxes', (publicSimulationMetaDatas) => { updatePublicSimulationDescriptionBoxes(publicSimulationMetaDatas);})
 
     // q5 function and inbuilt variables
     createCanvas(windowWidth, windowHeight, WEBGL);
@@ -384,27 +385,26 @@ function setup() {
     function initialiseMainSimulation() {
         currentSimulation = new Simulation();
 
-        currentSimulation.addBody(new Body('earth', [0,0], [0,29.78e3], 5.972e24, 12756274, earthImage, [0,0,255]));
-        currentSimulation.addBody(new Body('moon', [384400000, 0], [0,29.78e3+1.022e3], 7.35e22, 3474e3, moonImage, [220,220,220]));
+        currentSimulation.addBody(new Body('earth', [0,0], [0,29.78e3], 5.972e24, 12756274, "earth", [0,0,255]));
+        currentSimulation.addBody(new Body('moon', [384400000, 0], [0,29.78e3+1.022e3], 7.35e22, 3474e3, "moon", [220,220,220]));
+       
 
-        
+        currentSimulation.addBody(new Body('sun', [-149.6e9, 0], [0,0], 1.988e30, 1.39e9, "sun", [255,234,0]));
 
-        currentSimulation.addBody(new Body('sun', [-149.6e9, 0], [0,0], 1.988e30, 1.39e9, sunImage, [255,234,0]));
-
-        currentSimulation.addBody(new Body('mars', [-149.6e9 + 2.2794e11,0], [0,24e3], 6.4191e23, 7.9238e6, marsImage, [255,0,0]));
-        currentSimulation.addBody(new Body('mercury', [-149.6e9 + 5.791e10, 0], [0,47.4e3], 3.3011e23, 4.88e6, mercuryImage, [220,220,220]));
-        currentSimulation.addBody(new Body('venus', [-149.6e9 + 1.0821e11, 0], [0,35e3], 4.8675e24, 1.21036e7, venusImage, [200, 20, 20]));
-        currentSimulation.addBody(new Body('jupiter', [-149.6e9 + 7.7841e11, 0], [0,13.1e3], 1.8982e27, 1.42984e8, jupiterImage, [100, 50, 70]));
-        currentSimulation.addBody(new Body('saturn', [-149.6e9 + 1.43e12, 0], [0, 9.69e3], 5.683e26, 1.1647e8, saturnImage, [255,255,255]));
-        currentSimulation.addBody(new Body('uranus', [-149.6e9 + 2.87e12, 0], [0, 6.835e3], 8.6810e25, 5.0724e7, uranusImage, [255,255,255]));
-        currentSimulation.addBody(new Body('neptune', [-149.6e9 + 4.5e12, 0], [0, 5.43e3], 1.02409e26, 4.9244e7, neptuneImage, [255,255,255]));
+        currentSimulation.addBody(new Body('mars', [-149.6e9 + 2.2794e11,0], [0,24e3], 6.4191e23, 7.9238e6, "mars", [255,0,0]));
+        currentSimulation.addBody(new Body('mercury', [-149.6e9 + 5.791e10, 0], [0,47.4e3], 3.3011e23, 4.88e6, "mercury", [220,220,220]));
+        currentSimulation.addBody(new Body('venus', [-149.6e9 + 1.0821e11, 0], [0,35e3], 4.8675e24, 1.21036e7, "venus", [200, 20, 20]));
+        currentSimulation.addBody(new Body('jupiter', [-149.6e9 + 7.7841e11, 0], [0,13.1e3], 1.8982e27, 1.42984e8, "jupiter", [100, 50, 70]));
+        currentSimulation.addBody(new Body('saturn', [-149.6e9 + 1.43e12, 0], [0, 9.69e3], 5.683e26, 1.1647e8, "saturn", [255,255,255]));
+        currentSimulation.addBody(new Body('uranus', [-149.6e9 + 2.87e12, 0], [0, 6.835e3], 8.6810e25, 5.0724e7, "uranus", [255,255,255]));
+        currentSimulation.addBody(new Body('neptune', [-149.6e9 + 4.5e12, 0], [0, 5.43e3], 1.02409e26, 4.9244e7, "neptune", [255,255,255]));
         
 	    //bodies.push(new Body("phobos", 1.06e16, 11e3, [2.2794e11, 9.376e6], [2.1e3, 24e3], 'grey'));
 	    //bodies.push(new Body("uranus", 8.6810e25, 5.0724e7, [2.87e12, 0], [0, 6.835e3], '#B2D6DB'));
 	    //bodies.push(new Body("neptune", 1.02409e26, 4.9244e7, [4.5e12, 0],[0, 5.43e3], '#7CB7BB'));
 
-        //currentSimulation.getBodyByName('moon').setMinCanvasDiameter(0);
-        //currentSimulation.getBodyByName('sun').setMinCanvasDiameter(4);
+        currentSimulation.getBodyByName('moon').setMinCanvasDiameter(0);
+        currentSimulation.getBodyByName('sun').setMinCanvasDiameter(20);
 //
         //currentSimulation.getCamera().setZoom(1 * (1/1.1) ** 11);
         //currentSimulation.getCamera().setPosition([0, 0]);
@@ -434,6 +434,10 @@ function setup() {
     savedSimulationDescriptionBoxes.push(new SimulationDescriptionBox(1 * width / 8 + 0 * 5, height / 5, (width/4) - 5, 0.7 * height));
     savedSimulationDescriptionBoxes.push(new SimulationDescriptionBox(3 * width / 8 + 1 * 5, height / 5, (width/4) - 5, 0.7 * height));
     savedSimulationDescriptionBoxes.push(new SimulationDescriptionBox(5 * width / 8 + 2 * 5, height / 5, (width/4) - 5, 0.7 * height));
+
+    publicSimulationDescriptionBoxes.push(new SimulationDescriptionBox(1 * width / 8 + 0 * 5, height / 5, (width/4) - 5, 0.7 * height));
+    publicSimulationDescriptionBoxes.push(new SimulationDescriptionBox(3 * width / 8 + 1 * 5, height / 5, (width/4) - 5, 0.7 * height));
+    publicSimulationDescriptionBoxes.push(new SimulationDescriptionBox(5 * width / 8 + 2 * 5, height / 5, (width/4) - 5, 0.7 * height));
 
     // start looping background music after 10 seconds
     setTimeout(() => { 
@@ -528,8 +532,7 @@ function saveAsSimulation() {
 }
 
 function setCurrentSimulation(simulationDataString) { 
-    currentSimulationData = JSON.parse(simulationDataString);
-    currentSimulation.SetData(currentSimulationData);
+    currentSimulation.setData(simulationDataString);
 }
 
 // called once per frame
@@ -597,6 +600,9 @@ function draw() {
         case states.indexOf('my simulations menu'):
             drawSavedSimulationsBoxes();
             break;
+        case states.indexOf('public simulations menu'):
+            drawPublicSimulationsBoxes();
+            break;
         default:
             break;
     }
@@ -620,17 +626,17 @@ function loadSettings(settings) {
 }
 
 function updatePublicSimulationDescriptionBoxes(simulationMetaDatas) {
-
+    let i = 0;
+    for (i; i < 3 && i < publicSimulationDescriptionBoxes.length; i++) {
+        console.log(i, simulationMetaDatas[i])
+        publicSimulationDescriptionBoxes[i].updateContents(simulationMetaDatas[i]);
+    }
+    for (i; i < 3; i++) {
+        publicSimulationDescriptionBoxes[i].updateContents(-1);
+    }
 }
 
 function updateSavedSimulationDescriptionBoxes(userSimulationMetaDatas) {
-    //let linkedSimulationIDs = [];
-    //for (let savedSimulationDescriptionBox of savedSimulationDescriptionBoxes) {
-    //    linkedSimulationIDs.push(savedSimulationDescriptionBox.getLinkedSimulationID());
-    //}
-
-    //console.log(userSimulationMetaDatas);
-
     let i = 0;
     for (i; i < 3 && i < userSimulationMetaDatas.length; i++) {
         console.log(i, userSimulationMetaDatas[i])
@@ -644,6 +650,12 @@ function updateSavedSimulationDescriptionBoxes(userSimulationMetaDatas) {
 function drawSavedSimulationsBoxes() {
     for (let savedSimulationDescriptionBox of savedSimulationDescriptionBoxes) {
         savedSimulationDescriptionBox.display();
+    }
+}
+
+function drawPublicSimulationsBoxes() {
+    for (let publicSimulationDescriptionBox of publicSimulationDescriptionBoxes) {
+        publicSimulationDescriptionBox.display();
     }
 }
 
@@ -735,6 +747,35 @@ function buttonsClicked() {
     }
 }
 
+function savedSimulationDescriptionBoxPressed() {
+    for (let box of savedSimulationDescriptionBoxes) {
+        if (box.mouseOverlapping()) {
+            let contents = box.getContents();
+            if (!contents || contents === "no simulation saved") {
+                return;
+            }
+            let simulationID = box.getSimulationID();
+            console.log(simulationID);
+            socket.emit('loadSimulationByID', simulationID);
+        }
+    }
+}
+
+function publicSimulationDescriptionBoxPressed() { ////////////////////////////////////////////////////////////
+    for (let box of publicSimulationDescriptionBoxes) {
+        if (box.mouseOverlapping()) {
+            let contents = box.getContents();
+            if (!contents || contents === "no simulation saved") {
+                return;
+            }
+            let simulationID = box.getSimulationID();
+            console.log(simulationID);
+            socket.emit('loadSimulationByID', simulationID);
+        }
+    }
+}
+
+
 // can now drag things, may be useful
 function mouseDragged() {
     // move popup box if mouse is dragged and initially pressed over popup box
@@ -777,9 +818,7 @@ function mouseReleased(event) {
         // left click
         case 0:
             switch (state) {
-                case 0:  // main menu
-                    break;
-                case 1:  // main simulation
+                case states.indexOf('main simulation'):  // main simulation
                     // pause & play simulation if clicked icons
                     if (pauseIcon.mouseOverlapping() && currentSimulation.getTimeRate() !== 0) {
                         currentSimulation.setTimeRate(0);
@@ -793,7 +832,9 @@ function mouseReleased(event) {
                     // check for click on update body popup
                     // if clicked returns false, linked body is deleted
                     if (updateBodyPopupBox !== -1 && updateBodyPopupBox.mouseOverlapping()) {
+                        console.log(updateBodyPopupBox.clicked(mouseX,mouseY)); /////////////////////////////////////////////////log this bug fix
                         if (!updateBodyPopupBox.clicked(mouseX, mouseY)) {
+                            console.log(currentSimulation.getBodies().indexOf(updateBodyPopupBox.getLinkedBody()));
                             currentSimulation.getBodies().splice(currentSimulation.getBodies().indexOf(updateBodyPopupBox.getLinkedBody()), 1);
                         }
                         break;
@@ -817,7 +858,10 @@ function mouseReleased(event) {
 
                     currentlyDragging = -1;
 
-                break;
+                    break;
+                case states.indexOf('my simulations menu'):
+                    savedSimulationDescriptionBoxPressed();
+                    break;
             }
         break;
         // right click
@@ -911,7 +955,6 @@ function drawCurrentSimBodies() {
     imageMode(CENTER);
     ellipseMode(CENTER);
 
-    // ...
     currentSimulation.moveCameraToFocus();
 
     // cache current simulation camera and bodies to not call .getCamera(), .getBodies() many times
@@ -929,11 +972,12 @@ function drawCurrentSimBodies() {
 
         // display ellipse if body has no stored image, else display the image. both at calculated canvas position and diameter
         let bodyImage = body.getImage();
-        if (bodyImage === 0) {
+        if (bodyImage === 'none') {
             fill(body.getColour());
             circle(canvasPos[0], canvasPos[1], canvasDiameter);
         } else {
-            image(bodyImage, canvasPos[0], canvasPos[1], canvasDiameter, canvasDiameter);
+            let img = bodyImages[bodyImage];
+            image(img, canvasPos[0], canvasPos[1], canvasDiameter, canvasDiameter);
         }
     }
 

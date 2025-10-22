@@ -86,4 +86,11 @@ class Camera {
            focusOffset : this.#focusOffset,
         }
     }
+
+    setData(data) {
+        this.#pos = data.pos
+        this.#focusOffset = data.focusOffset;
+        this.#scaleFactor = data.scaleFactor;
+        this.#zoom = data.zoom;
+    }
 }

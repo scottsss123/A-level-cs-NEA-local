@@ -16,9 +16,7 @@ class Body {
         this.#diameter = inDiameter;
         this.#image = inImage;
         this.#colour = inColour;
-        this.#minCanvasDiameter = 3;
-
-        this.notPrivateTestAttribute = 5;
+        this.#minCanvasDiameter = 4;
     }
 
     getName() {

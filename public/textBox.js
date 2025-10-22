@@ -53,6 +53,10 @@ class TextBox extends Box {
         rectMode(CENTER);
     }
 
+    getContents() {
+        return this.#contents;
+    }
+
     updateContents(inContents) {
         this.#contents = inContents;
     }

@@ -34,14 +34,16 @@ function connected(socket) {
     socket.on('logdata', (data) => {
         console.log(data);
     })
-    socket.on('insertSimulation', (data) => { insertSimulation(data) });
-    socket.on('saveSettings', (data) => { saveSettings(data) });
-    socket.on('loadSettings', (data) => { loadSettings(data) });
-    socket.on('saveSimulation', (data) => { saveSimulation(data) });
-    socket.on('saveAsSimulation', (data) => { saveAsSimulation(data) });
-    socket.on('loglastuserid', () => {loglastuserid()})
-    socket.on('setCurrentSimulationByID', (ID) => {setCurrentSimulationByID(ID)});
-    socket.on('updateSavedSimulationDescriptionBoxes', (ID) => {updateSavedSimulationDescriptionBoxes(ID)})
+    socket.on('insertSimulation', (data) => { insertSimulation(data); });
+    socket.on('saveSettings', (data) => { saveSettings(data); });
+    socket.on('loadSettings', (data) => { loadSettings(data); });
+    socket.on('saveSimulation', (data) => { saveSimulation(data); });
+    socket.on('saveAsSimulation', (data) => { saveAsSimulation(data); });
+    socket.on('loglastuserid', () => { loglastuserid(); })
+    socket.on('setCurrentSimulationByID', (ID) => {setCurrentSimulationByID(ID); });
+    socket.on('updateSavedSimulationDescriptionBoxes', (ID) => {updateSavedSimulationDescriptionBoxes(ID); });
+    socket.on('loadSimulationByID', (ID) => { loadSimulationByID(ID); });
+    socket.on('updatePublicSimulationDescriptionBoxes', () => { updatePublicSimulationDescriptionBoxes(); });
 }
 
 // log db usernames to serverside console
@@ -396,8 +398,8 @@ function getSimulationByID(ID) {
             if (err) {
                 console.log(err);
             } else {
-                console.log(rows);
-                resolve(rows);
+                //console.log(rows);
+                resolve(rows[0]);
             }
         })
     })
@@ -423,4 +425,27 @@ async function updateSavedSimulationDescriptionBoxes(ID) {
 
 
     io.emit('updateSavedSimulationDescriptionBoxes', userSimulationMetaDatas);
+}
+
+async function updatePublicSimulationDescriptionBoxes() {
+    let simulationMetaDatas = await getSimulationMetaDatas();
+    let publicSimulationMetaDatas = [];
+
+    for (let simulationMetaData of simulationMetaDatas) {
+        if (simulationMetaData.IsPublic === 1) {
+            publicSimulationMetaDatas.push(simulationMetaData);
+        }
+    }
+
+    console.log('meta datas: ', publicSimulationMetaDatas);
+
+    io.emit('updatePublicSimulationDescriptionBoxes', publicSimulationMetaDatas);
+}
+
+async function loadSimulationByID(ID) {
+    
+    let simulationData = await getSimulationByID(ID);
+    
+    io.emit('setCurrentSimulation', simulationData.Simulation);
+    
 }

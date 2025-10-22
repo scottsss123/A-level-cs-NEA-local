@@ -174,4 +174,22 @@ class Simulation {
             id: this.#id
         }
     }
+
+    setData(simulationDataString) {
+        let data = JSON.parse(simulationDataString);
+        console.log(data);
+
+        this.#bodies = [];
+        for (let i = 0; i < data.bodies.length; i++) {
+            let body = data.bodies[i]
+            ////////////////////////////////////////////img
+            this.#bodies[i] = new Body(body.name, body.pos, body.vel, body.mass, body.diameter, body.image, body.colour );
+        }
+        this.#camera.setData(data.camera);
+        this.#focus = new Body(data.focus.name, data.focus.pos, data.focus.vel, data.focus.mass, data.focus.diameter, data.focus.image, data.focus.colour );
+        this.#prevTimeRate = data.prevTimeRate
+        this.#time = data.time;
+        this.#timeRate = data.timeRate;
+        this.#id = data.id;
+    }
 }
