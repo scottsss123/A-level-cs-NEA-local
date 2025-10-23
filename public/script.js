@@ -625,9 +625,10 @@ function loadSettings(settings) {
     updateUnitSettingsBoxes();
 }
 
-function updatePublicSimulationDescriptionBoxes(simulationMetaDatas) {
+function updatePublicSimulationDescriptionBoxes(simulationMetaDatas) { /////////////////////////////////adjustable index so can load more than first 3 saved
     let i = 0;
-    for (i; i < 3 && i < publicSimulationDescriptionBoxes.length; i++) {
+    console.log(simulationMetaDatas.length);
+    for (i; i < 3 && i < simulationMetaDatas.length; i++) {
         console.log(i, simulationMetaDatas[i])
         publicSimulationDescriptionBoxes[i].updateContents(simulationMetaDatas[i]);
     }
@@ -750,6 +751,15 @@ function buttonsClicked() {
 function savedSimulationDescriptionBoxPressed() {
     for (let box of savedSimulationDescriptionBoxes) {
         if (box.mouseOverlapping()) {
+
+            if (mouseButton === 'right') {
+                let deleteConfirmationInput = prompt("Delete simulation, are you sure ? (y / n)");
+                if (deleteConfirmationInput === 'y') {
+                    socket.emit('deleteSimulationByID', {simulationID: box.getSimulationID(), userID: currentUserID});
+                }
+                return;
+            }
+
             let contents = box.getContents();
             if (!contents || contents === "no simulation saved") {
                 return;
@@ -800,6 +810,15 @@ function mousePressed(event) {
     }
     if (updateBodyPopupBox !== -1 && updateBodyPopupBox.mouseOverlapping()) {
         currentlyDragging = updateBodyPopupBox;
+    }
+
+    switch (state) {
+        case states.indexOf('my simulations menu'):
+            savedSimulationDescriptionBoxPressed();
+            break;
+        case states.indexOf('public simulations menu'):
+            publicSimulationDescriptionBoxPressed();
+            break;
     }
 }
 
@@ -857,10 +876,6 @@ function mouseReleased(event) {
                     }
 
                     currentlyDragging = -1;
-
-                    break;
-                case states.indexOf('my simulations menu'):
-                    savedSimulationDescriptionBoxPressed();
                     break;
             }
         break;

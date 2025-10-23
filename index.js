@@ -44,6 +44,7 @@ function connected(socket) {
     socket.on('updateSavedSimulationDescriptionBoxes', (ID) => {updateSavedSimulationDescriptionBoxes(ID); });
     socket.on('loadSimulationByID', (ID) => { loadSimulationByID(ID); });
     socket.on('updatePublicSimulationDescriptionBoxes', () => { updatePublicSimulationDescriptionBoxes(); });
+    socket.on('deleteSimulationByID', (data) => { deleteSimulationByID(data); });
 }
 
 // log db usernames to serverside console
@@ -448,4 +449,19 @@ async function loadSimulationByID(ID) {
     
     io.emit('setCurrentSimulation', simulationData.Simulation);
     
+}
+
+async function deleteSimulationByID(data) {
+    console.log('trying to delete',data.simulationID);
+
+    let sql = "DELETE FROM Simulations WHERE SimulationID = " + data.simulationID + ";";
+    db.all(sql, (err) => {
+        if (err) {
+            console.log(err);
+        } else {
+            console.log('simulation id: ' + data.simulationID + " deleted");
+            io.emit('alert', 'simulation id: ' + data.simulationID + ' deleted');
+            updateSavedSimulationDescriptionBoxes(data.userID);
+        }
+    })
 }

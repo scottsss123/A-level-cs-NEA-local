@@ -91,6 +91,7 @@ class Simulation {
             return; 
         }
         let focusPos = this.#focus.getPos();
+        console.log(this.#focus);
         this.#camera.setPosition(focusPos);
     }
     getFocus() {
@@ -186,7 +187,11 @@ class Simulation {
             this.#bodies[i] = new Body(body.name, body.pos, body.vel, body.mass, body.diameter, body.image, body.colour );
         }
         this.#camera.setData(data.camera);
-        this.#focus = new Body(data.focus.name, data.focus.pos, data.focus.vel, data.focus.mass, data.focus.diameter, data.focus.image, data.focus.colour );
+        if (data.focus === false) {
+            this.#focus = false;
+        } else {
+            this.#focus = new Body(data.focus.name, data.focus.pos, data.focus.vel, data.focus.mass, data.focus.diameter, data.focus.image, data.focus.colour );
+        }
         this.#prevTimeRate = data.prevTimeRate
         this.#time = data.time;
         this.#timeRate = data.timeRate;
